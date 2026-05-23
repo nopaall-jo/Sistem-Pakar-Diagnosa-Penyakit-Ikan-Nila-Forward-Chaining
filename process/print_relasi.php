@@ -1,0 +1,347 @@
+<?php
+date_default_timezone_set('Asia/Jakarta');
+require_once '../config/database.php';
+require_once '../vendor/autoload.php';
+
+// Set header untuk cache control
+header("Cache-Control: no-cache, no-store, must-revalidate");
+header("Pragma: no-cache");
+header("Expires: 0");
+
+$format = strtolower(trim($_POST['format'] ?? $_GET['format'] ?? 'pdf'));
+$group_by = strtolower(trim($_POST['group_by'] ?? $_GET['group_by'] ?? 'none'));
+
+// Ambil data relasi dengan join ke penyakit dan gejala (Tabel disesuaikan dgn database)
+$query = "SELECT r.id_aturan, r.kode_penyakit, p.nama_penyakit, r.kode_gejala, g.nama_gejala 
+          FROM tbl_aturan r
+          JOIN tbl_penyakit p ON r.kode_penyakit = p.kode_penyakit
+          JOIN tbl_gejala g ON r.kode_gejala = g.kode_gejala
+          ORDER BY ";
+
+// Sesuaikan urutan berdasarkan pengelompokan
+switch ($group_by) {
+    case 'penyakit':
+        $query .= "r.kode_penyakit ASC, r.kode_gejala ASC";
+        break;
+    case 'gejala':
+        $query .= "r.kode_gejala ASC, r.kode_penyakit ASC";
+        break;
+    default:
+        $query .= "r.kode_penyakit ASC, r.kode_gejala ASC"; 
+        break;
+}
+
+$stmt = $pdo->query($query);
+$relasi = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+if ($format === 'pdf') {
+    // Cetak PDF menggunakan TCPDF
+    require_once('../vendor/tecnickcom/tcpdf/tcpdf.php');
+    
+    // Buat objek PDF baru
+    $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+    
+    // Set dokumen meta data
+    $pdf->SetCreator(PDF_CREATOR);
+    $pdf->SetAuthor('Sistem Pakar Ikan Nila');
+    $pdf->SetTitle('Laporan Data Basis Pengetahuan (Relasi)');
+    $pdf->SetSubject('Data Relasi Penyakit dan Gejala Ikan Nila');
+    
+    $pdf->SetMargins(15, 25, 15);
+    $pdf->SetHeaderMargin(5);
+    $pdf->SetFooterMargin(10);
+    $pdf->SetAutoPageBreak(TRUE, 25);
+    $pdf->setImageScale(PDF_IMAGE_SCALE_RATIO);
+    $pdf->SetFont('times', '', 10);
+    $pdf->AddPage();
+    
+    // Kop surat
+    // Persiapkan path logo (Gunakan realpath agar TCPDF bisa membaca gambar lokal)
+    $path_logoKiri = realpath(__DIR__ . '/../assets/img/logo4.png');
+    $path_logoKanan = realpath(__DIR__ . '/../assets/img/logo3.png');
+
+    // Validasi file logo (Mencegah error 'Image not found' pada TCPDF jika file terhapus/salah folder)
+    $img_kiri = file_exists($path_logoKiri) ? '<img src="' . $path_logoKiri . '" width="75">' : '';
+    $img_kanan = file_exists($path_logoKanan) ? '<img src="' . $path_logoKanan . '" width="75">' : '';
+
+    $kop = '
+    <table border="0" cellpadding="2" cellspacing="0" width="100%">
+        <tr>
+            <td width="15%" align="center">
+                ' . $img_kiri . '
+            </td>
+            
+            <td width="70%" align="center">
+                <h3 style="margin: 0; font-weight: bold; line-height: 1.5;">SISTEM PAKAR DIAGNOSIS PENYAKIT IKAN NILA</h3>
+                <h3 style="margin: 0; font-weight: bold; line-height: 1.5;">METODE FORWARD CHAINING</h3>
+                <p style="margin: 0; font-size: 11pt; font-weight: bold;">KECAMATAN BOJONG GEDE</p>
+                <p style="margin: 0; font-size: 10pt;">Kabupaten Bogor, Provinsi Jawa Barat</p>
+            </td>
+            
+            <td width="15%" align="center">
+                ' . $img_kanan . '
+            </td>
+        </tr>
+    </table>
+    
+    <br>
+    <hr style="border-top: 3px solid #000; margin-top: 2px;">
+    <br>
+    ';
+    
+    $pdf->writeHTML($kop, true, false, true, false, '');
+    
+    // Judul laporan
+    $pdf->SetFont('times', 'B', 14);
+    $pdf->Cell(0, 10, 'LAPORAN BASIS PENGETAHUAN (ATURAN RELASI)', 0, 1, 'C');
+    $pdf->SetFont('times', '', 10);
+    
+    // Jenis pengelompokan
+    $groupText = ($group_by === 'penyakit') ? 'Format: Dikelompokkan berdasarkan Penyakit' : 
+                (($group_by === 'gejala') ? 'Format: Dikelompokkan berdasarkan Gejala' : 'Format: Semua Data Relasi (Urut Default)');
+    $pdf->Cell(0, 5, $groupText, 0, 1);
+    
+    $pdf->Cell(0, 5, 'Dicetak pada: ' . date('d/m/Y H:i') . ' WIB', 0, 1);
+    $pdf->Ln(5);
+    
+    // ==========================================
+    // LOGIKA CETAK TABEL PDF
+    // ==========================================
+    if (count($relasi) == 0) {
+        $pdf->Cell(0, 10, 'Tidak ada data relasi/aturan di dalam basis pengetahuan.', 0, 1, 'C');
+    } 
+    elseif ($group_by === 'penyakit') {
+        $current_penyakit = null;
+        $html = '';
+        
+        foreach ($relasi as $r) {
+            if ($current_penyakit !== $r['kode_penyakit']) {
+                if ($current_penyakit !== null) {
+                    $html .= '</tbody></table><br>';
+                    $pdf->writeHTML($html, true, false, true, false, '');
+                    $html = '';
+                }
+                
+                $current_penyakit = $r['kode_penyakit'];
+
+                $pdf->SetFont('times', 'B', 11);
+                $pdf->SetTextColor(0, 100, 0);
+                $pdf->Cell(0, 8, '[' . $r['kode_penyakit'] . '] ' . mb_strtoupper($r['nama_penyakit']), 0, 1);
+                $pdf->SetTextColor(0, 0, 0);
+                $pdf->SetFont('times', '', 10);
+                
+                $html = '<table border="1" cellpadding="5">
+                    <thead>
+                        <tr style="background-color:#e2efd9;font-weight:bold; text-align:center;">
+                            <th width="10%">No</th>
+                            <th width="20%">Kode Gejala</th>
+                            <th width="70%">Nama Gejala</th>
+                        </tr>
+                    </thead>
+                    <tbody>';
+                
+                $gejala_counter = 1;
+            }
+            
+            $html .= '<tr>
+                <td width="10%" align="center">' . $gejala_counter . '</td>
+                <td width="20%" align="center">' . $r['kode_gejala'] . '</td>
+                <td width="70%">' . htmlspecialchars($r['nama_gejala']) . '</td>
+            </tr>';
+            
+            $gejala_counter++;
+        }
+        
+        if ($html !== '') {
+            $html .= '</tbody></table><br>';
+            $pdf->writeHTML($html, true, false, true, false, '');
+        }
+        
+    } elseif ($group_by === 'gejala') {
+        $current_gejala = null;
+        $html = '';
+        
+        foreach ($relasi as $r) {
+            if ($current_gejala !== $r['kode_gejala']) {
+                if ($current_gejala !== null) {
+                    $html .= '</tbody></table><br>';
+                    $pdf->writeHTML($html, true, false, true, false, '');
+                    $html = '';
+                }
+                
+                $current_gejala = $r['kode_gejala'];
+                
+                $pdf->SetFont('times', 'B', 11);
+                $pdf->SetTextColor(0, 100, 0); 
+                $pdf->Cell(0, 8, '[' . $r['kode_gejala'] . '] ' . mb_strtoupper($r['nama_gejala']), 0, 1);
+                $pdf->SetTextColor(0, 0, 0);
+                $pdf->SetFont('times', '', 10);
+                
+                $html = '<table border="1" cellpadding="5">
+                    <thead>
+                        <tr style="background-color:#e2efd9; font-weight:bold; text-align:center;">
+                            <th width="10%">No</th>
+                            <th width="20%">Kode Penyakit</th>
+                            <th width="70%">Nama Penyakit</th>
+                        </tr>
+                    </thead>
+                    <tbody>';
+                
+                $penyakit_counter = 1;
+            }
+            
+            $html .= '<tr>
+                <td width="10%" align="center">' . $penyakit_counter . '</td>
+                <td width="20%" align="center">' . $r['kode_penyakit'] . '</td>
+                <td width="70%">' . htmlspecialchars($r['nama_penyakit']) . '</td>
+            </tr>';
+            
+            $penyakit_counter++;
+        }
+        
+        if ($html !== '') {
+            $html .= '</tbody></table><br>';
+            $pdf->writeHTML($html, true, false, true, false, '');
+        }
+        
+    } else {
+        // Tanpa pengelompokan (Default)
+        $html = '<table border="1" cellpadding="5">
+            <thead>
+                <tr style="background-color:#e2efd9; font-weight:bold; text-align:center;">
+                    <th width="5%">No</th>
+                    <th width="15%">Kode Penyakit</th>
+                    <th width="30%">Nama Penyakit</th>
+                    <th width="15%">Kode Gejala</th>
+                    <th width="30%">Nama Gejala</th>
+                </tr>
+            </thead>
+            <tbody>';
+        
+        foreach ($relasi as $key => $r) {
+            $html .= '<tr>
+                <td width="5%" align="center">' . ($key + 1) . '</td>
+                <td width="15%" align="center">' . $r['kode_penyakit'] . '</td>
+                <td width="30%">' . htmlspecialchars($r['nama_penyakit']) . '</td>
+                <td width="15%" align="center">' . $r['kode_gejala'] . '</td>
+                <td width="30%">' . htmlspecialchars($r['nama_gejala']) . '</td>
+            </tr>';
+        }
+        
+        $html .= '</tbody></table><br>';
+        $pdf->writeHTML($html, true, false, true, false, '');
+    }
+    
+    // Tanda tangan PDF
+    $pdf->Ln(10);
+    $pdf->Cell(0, 5, 'Bojong Gede, ' . date('d F Y'), 0, 1, 'R');
+    $pdf->Cell(0, 5, 'Pakar / Admin Sistem', 0, 1, 'R');
+    $pdf->Ln(20);
+    $pdf->Cell(0, 5, '(__________________________)', 0, 1, 'R');
+    
+    // Output ke browser
+    $pdf->Output('Laporan_Relasi_Ikan_Nila_' . date('Ymd_His') . '.pdf', 'I');
+    
+} elseif ($format === 'excel') {
+    // ==========================================
+    // LOGIKA CETAK TABEL EXCEL
+    // ==========================================
+    require_once '../vendor/phpoffice/phpspreadsheet/src/PhpSpreadsheet/Spreadsheet.php';
+    require_once '../vendor/phpoffice/phpspreadsheet/src/PhpSpreadsheet/Writer/Xlsx.php';
+    
+    $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+    $sheet = $spreadsheet->getActiveSheet();
+    
+    $sheet->setCellValue('A1', 'SISTEM PAKAR DIAGNOSIS PENYAKIT IKAN NILA');
+    $sheet->mergeCells('A1:E1');
+    $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+    $sheet->getStyle('A1')->getAlignment()->setHorizontal('center');
+    
+    $sheet->setCellValue('A2', 'Metode Forward Chaining');
+    $sheet->mergeCells('A2:E2');
+    $sheet->getStyle('A2')->getFont()->setBold(true);
+    $sheet->getStyle('A2')->getAlignment()->setHorizontal('center');
+    
+    $sheet->setCellValue('A3', 'Kecamatan Bojong Gede, Kabupaten Bogor, Jawa Barat');
+    $sheet->mergeCells('A3:E3');
+    $sheet->getStyle('A3')->getAlignment()->setHorizontal('center');
+    
+    $sheet->setCellValue('A5', 'LAPORAN BASIS PENGETAHUAN (ATURAN RELASI) IKAN NILA');
+    $sheet->mergeCells('A5:E5');
+    $sheet->getStyle('A5')->getFont()->setBold(true)->setSize(12);
+    $sheet->getStyle('A5')->getAlignment()->setHorizontal('center');
+    
+    $sheet->setCellValue('A6', 'Format: ' . 
+        ($group_by === 'penyakit' ? 'Dikelompokkan Berdasarkan Penyakit' : 
+        ($group_by === 'gejala' ? 'Dikelompokkan Berdasarkan Gejala' : 'Semua Data Relasi (Urut Default)')));
+    $sheet->mergeCells('A6:E6');
+    $sheet->getStyle('A6')->getAlignment()->setHorizontal('center'); // Tambahan: Rata tengah
+    
+    $sheet->setCellValue('A7', 'Dicetak pada: ' . date('d/m/Y H:i') . ' WIB');
+    $sheet->mergeCells('A7:E7');
+    $sheet->getStyle('A7')->getAlignment()->setHorizontal('center'); // Tambahan: Rata tengah
+    
+    $sheet->setCellValue('A9', 'No');
+    $sheet->setCellValue('B9', 'Kode Penyakit');
+    $sheet->setCellValue('C9', 'Nama Penyakit');
+    $sheet->setCellValue('D9', 'Kode Gejala');
+    $sheet->setCellValue('E9', 'Nama Gejala');
+    
+    $headerStyle = [
+        'font' => ['bold' => true],
+        'alignment' => ['horizontal' => 'center'],
+        'borders' => ['allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN]],
+        'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => 'E2EFD9']]
+    ];
+    $sheet->getStyle('A9:E9')->applyFromArray($headerStyle);
+    
+    $row = 10;
+    foreach ($relasi as $key => $r) {
+        $sheet->setCellValue('A' . $row, $key + 1);
+        $sheet->setCellValue('B' . $row, $r['kode_penyakit']);
+        $sheet->setCellValue('C' . $row, $r['nama_penyakit']);
+        $sheet->setCellValue('D' . $row, $r['kode_gejala']);
+        $sheet->setCellValue('E' . $row, $r['nama_gejala']);
+        
+        $sheet->getStyle('A'.$row.':B'.$row)->getAlignment()->setHorizontal('center');
+        $sheet->getStyle('D'.$row)->getAlignment()->setHorizontal('center');
+        
+        $row++;
+    }
+    
+    foreach (range('A', 'E') as $columnID) {
+        $sheet->getColumnDimension($columnID)->setAutoSize(true);
+    }
+    
+    $dataStyle = [
+        'borders' => ['allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN]],
+        'alignment' => ['wrapText' => true]
+    ];
+    $sheet->getStyle('A9:E' . ($row - 1))->applyFromArray($dataStyle);
+    
+    $sheet->mergeCells('A'.($row+2).':E'.($row+2));
+    $sheet->setCellValue('A'.($row+2), 'Bojong Gede, ' . date('d F Y'));
+    $sheet->getStyle('A'.($row+2))->getAlignment()->setHorizontal('right');
+    
+    $sheet->mergeCells('A'.($row+3).':E'.($row+3));
+    $sheet->setCellValue('A'.($row+3), 'Pakar / Admin Sistem');
+    $sheet->getStyle('A'.($row+3))->getAlignment()->setHorizontal('right');
+    
+    $sheet->mergeCells('A'.($row+7).':E'.($row+7));
+    $sheet->setCellValue('A'.($row+7), '(__________________________)');
+    $sheet->getStyle('A'.($row+7))->getAlignment()->setHorizontal('right');
+    
+    $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+    
+    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    header('Content-Disposition: attachment;filename="Laporan_Relasi_Ikan_Nila_' . date('Ymd_His') . '.xlsx"');
+    header('Cache-Control: max-age=0');
+    
+    $writer->save('php://output');
+    exit();
+    
+} else {
+    // Jika format tidak dikenali
+    echo "<script>alert('Format laporan tidak valid!'); window.history.back();</script>";
+    exit();
+}
