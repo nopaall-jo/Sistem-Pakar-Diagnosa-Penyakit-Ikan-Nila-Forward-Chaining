@@ -14,7 +14,7 @@ $diagnosa_id = $_GET['id'];
 $is_print = isset($_GET['print']);
 
 // 1. Ambil data diagnosa (Sesuai Screenshot: id, tanggal_diagnosa, hasil_penyakit, confidence)
-$stmt = $pdo->prepare("SELECT d.*, p.nama_penyakit, p.nama_latin, p.deskripsi, p.solusi, p.pencegahan 
+$stmt = $pdo->prepare("SELECT d.*, p.nama_penyakit, p.deskripsi, p.solusi, p.pencegahan 
                        FROM tbl_diagnosa d 
                        LEFT JOIN tbl_penyakit p ON d.hasil_penyakit = p.kode_penyakit 
                        WHERE d.id_diagnosa = ?");
@@ -70,26 +70,27 @@ if ($is_print) {
     <div class="print-container">
         <div class="print-header">
             <h1>Sistem Pakar Ikan Nila</h1>
-            <p>Laporan Resmi Hasil Diagnosa Penyakit (Metode Forward Chaining)</p>
+            <p>Laporan Hasil Diagnosa Penyakit Berdasarkan Kode Sampel Ikan Nila</p>
         </div>
         
         <div class="section">
             <div class="info-grid">
                 <div class="info-item">
-                    <strong>ID Diagnosa:</strong> #<?= str_pad($diagnosa_id, 4, '0', STR_PAD_LEFT) ?>
+                    <strong>ID Diagnosa:</strong>#<?= str_pad($diagnosa_id, 4, '0', STR_PAD_LEFT) ?>
                 </div>
+
                 <div class="info-item">
-                    <strong>Tanggal Periksa:</strong> <?= date('d M Y, H:i', strtotime($diagnosa['tanggal_diagnosa'] ?? 'now')) ?> WIB
+                    <strong>Tanggal Periksa:</strong><?= date('d M Y, H:i', strtotime($diagnosa['tanggal_diagnosa'] ?? 'now')) ?> WIB
                 </div>
-                </div>
+
                 <div class="info-item">
-                    <strong>Peternak/Lokasi:</strong> <?= htmlspecialchars($diagnosa['nama_pembudidaya'] ?? '-') ?>
+                    <strong>Kode Sampel:</strong><?= htmlspecialchars($diagnosa['kode_sampel'] ?? '-') ?>
                 </div>
+
                 <div class="info-item">
-                    <strong>Tingkat Kepastian:</strong> <?= round(($diagnosa['confidence'] * 100), 2) ?>%
+                    <strong>Tingkat Kepastian:</strong><?= round(($diagnosa['confidence'] * 100), 2) ?>%
                 </div>
             </div>
-        </div>
 
         <div class="section">
             <h3 class="section-title">Kesimpulan Sistem: <?= htmlspecialchars($diagnosa['nama_penyakit'] ?? 'Tidak Dikenali') ?></h3>
@@ -120,8 +121,6 @@ if ($is_print) {
             <h3 class="section-title">Rekomendasi Medis & Penanganan</h3>
             
             <div style="margin-bottom: 15px;">
-                <strong>Nama Ilmiah / Latin:</strong> <em><?= htmlspecialchars($diagnosa['nama_latin'] ?? '-') ?></em>
-            </div>
             
             <div style="margin-bottom: 15px;">
                 <strong>Deskripsi Penyakit:</strong>
@@ -206,8 +205,8 @@ require_once '../../includes/header.php';
                             <td class="fw-bold"><?= date('d M Y, H:i', strtotime($diagnosa['tanggal_diagnosa'])) ?> WIB</td>
                         </tr>
                         <tr>
-                            <td class="text-muted">Nama Pembudidaya</td>
-                            <td class="fw-blod text-primary"><?= htmlspecialchars($diagnosa['nama_pembudidaya'] ?? '-') ?></td>
+                            <td class="text-muted">Kode Sampel</td>
+                            <td class="fw-bold text-primary"><?= htmlspecialchars($diagnosa['kode_sampel'] ?? '-') ?></td>
                         </tr>
                     </table>
                 </div>  
@@ -250,7 +249,7 @@ require_once '../../includes/header.php';
         <div class="row g-3">
             <div class="col-12">
                 <div class="p-3 bg-white rounded-3 border-start border-4 border-primary shadow-sm">
-                    <span class="badge bg-primary mb-2">Deskripsi (<?= htmlspecialchars($diagnosa['nama_latin'] ?? '-') ?>)</span>
+                    <span class="badge bg-primary mb-2">Deskripsi</span>
                     <p class="small mb-0 text-secondary"><?= nl2br(htmlspecialchars($diagnosa['deskripsi'] ?? '-')) ?></p>
                 </div>
             </div>

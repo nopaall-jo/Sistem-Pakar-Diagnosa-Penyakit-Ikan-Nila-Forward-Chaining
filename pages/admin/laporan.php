@@ -16,7 +16,7 @@ $end_date   = date('Y-m-d', strtotime($end_date));
 
 try {
 
-    $query = "SELECT d.*, p.nama_penyakit 
+    $query = "SELECT d.*, p.nama_penyakit
               FROM tbl_diagnosa d
               LEFT JOIN tbl_penyakit p 
                      ON d.hasil_penyakit = p.kode_penyakit
@@ -82,7 +82,7 @@ try {
                     <tr>
                         <th class="text-center ps-4" width="5%">No</th>
                         <th width="15%">Tanggal Diagnosa</th>
-                        <th width="20%">Nama Pembudidaya</th>
+                        <th width="20%">Kode Sampel</th>
                         <th width="30%">Hasil Diagnosa</th>
                         <th class="text-center" width="15%">Kecocokan</th>
                         <th class="text-center pe-4" width="15%">Aksi</th>
@@ -102,7 +102,7 @@ try {
                                 <small class="text-muted"><?= date('H:i', strtotime($row['tanggal_diagnosa'])) ?> WIB</small>
                             </td>
                             <td>
-                                <div class="fw-bold text-dark"><?= htmlspecialchars($row['nama_pembudidaya']) ?></div>
+                                <div class="fw-bold text-dark"> <?= htmlspecialchars($row['kode_sampel'] ?? '-') ?> </div>
                             </td>
                             <td>
                                 <?php if (!empty($row['nama_penyakit'])): ?>

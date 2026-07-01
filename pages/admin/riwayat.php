@@ -52,7 +52,7 @@ try {
                     <tr>
                         <th class="text-center ps-4" width="5%">No</th>
                         <th width="15%">Waktu Diagnosa</th>
-                        <th width="25%">Nama Pembudidaya</th>
+                        <th width="25%">Kode Sampel</th>
                         <th width="25%">Hasil Identifikasi</th>
                         <th class="text-center" width="15%">Tingkat Akurasi</th>
                         <th class="text-center pe-4" width="15%">Aksi</th>
@@ -78,7 +78,7 @@ try {
                                 <small class="text-muted"><?= date('H:i', strtotime($row['tanggal_diagnosa'])) ?> WIB</small>
                             </td>
                             <td>
-                                <div class="fw-bold text-primary"><?= htmlspecialchars($row['nama_pembudidaya'] ?? '-') ?></div>
+                                <div class="fw-bold text-primary"> <?= htmlspecialchars($row['kode_sampel'] ?? '-') ?> </div>
                             </td>
                             <td>
                                 <span class="fw-medium text-dark"><?= htmlspecialchars($row['nama_penyakit'] ?? 'Tidak Dikenali') ?></span>

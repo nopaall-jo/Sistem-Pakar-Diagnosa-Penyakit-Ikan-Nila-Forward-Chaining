@@ -11,7 +11,7 @@ if (!isset($_SESSION['hasil_diagnosa'])) {
 }
 
 $hasil_diagnosa = $_SESSION['hasil_diagnosa'];
-$nama_pembudidaya = $_SESSION['nama_pembudidaya'] ?? 'Tidak Diketahui';
+$kode_sampel = $_SESSION['kode_sampel'] ?? '-';
 
 // PERBAIKAN: Gunakan ?? null agar tidak error jika array kosong
 $penyakit_teratas = $hasil_diagnosa[0] ?? null;
@@ -38,7 +38,7 @@ require_once '../../includes/header.php';
             <i class="bi <?= $alert_icon ?> display-4 me-4"></i>
             <div>
                 <h4 class="alert-heading fw-bold mb-1">Hasil Diagnosa Selesai</h4>
-                <p class="mb-0">Mesin inferensi menyimpulkan kemungkinan terbesar ikan di kolam milik <strong><?= htmlspecialchars($_SESSION['nama_pembudidaya'] ?? 'Pelanggan') ?></strong> terserang penyakit <strong><?= htmlspecialchars($penyakit_teratas['nama_penyakit']) ?></strong>.</p>
+                <p class="mb-0"> Mesin inferensi menyimpulkan bahwa sampel dengan kode <strong><?= htmlspecialchars($_SESSION['kode_sampel'] ?? '-') ?></strong> memiliki indikasi penyakit <strong><?= htmlspecialchars($penyakit_teratas['nama_penyakit']) ?></strong>. </p>
             </div>
         </div>
 
@@ -62,7 +62,7 @@ require_once '../../includes/header.php';
                     <div class="col-12">
                         <div class="p-3 bg-light rounded-3 border-start border-4 border-primary">
                             <h6 class="fw-bold text-uppercase small text-muted mb-2">
-                                Deskripsi Klinis (<em><?= htmlspecialchars($penyakit['nama_latin']) ?></em>)
+                                Deskripsi Klinis
                             </h6>
                             <p class="mb-0 text-dark"><?= nl2br(htmlspecialchars($penyakit['deskripsi'])) ?></p>
                         </div>

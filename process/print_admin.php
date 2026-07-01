@@ -3,25 +3,21 @@ date_default_timezone_set('Asia/Jakarta');
 require_once '../config/database.php';
 require_once '../vendor/autoload.php';
 
-// Set header untuk cache control
 header("Cache-Control: no-cache, no-store, must-revalidate");
 header("Pragma: no-cache");
 header("Expires: 0");
 
 $format = strtolower(trim($_POST['format'] ?? $_GET['format'] ?? 'pdf'));
 
-// Eksekusi query (Diambil dari tbl_admin)
 $stmt = $pdo->prepare("SELECT * FROM tbl_admin ORDER BY nama_admin ASC");
 $stmt->execute();
 $admins = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 if ($format === 'pdf') {
-    // Cetak PDF menggunakan TCPDF
     require_once('../vendor/tecnickcom/tcpdf/tcpdf.php');
     
     $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
     
-    // Set dokumen meta data
     $pdf->SetCreator(PDF_CREATOR);
     $pdf->SetAuthor('Sistem Pakar Ikan Nila');
     $pdf->SetTitle('Laporan Data Administrator');
@@ -36,9 +32,6 @@ if ($format === 'pdf') {
     $pdf->SetFont('times', '', 11);
     $pdf->AddPage();
     
-    // ==========================================
-    // KOP SURAT 2 LOGO
-    // ==========================================
     $path_logoKiri = realpath(__DIR__ . '/../assets/img/logo4.png');
     $path_logoKanan = realpath(__DIR__ . '/../assets/img/logo3.png');
 
@@ -63,14 +56,12 @@ if ($format === 'pdf') {
     <br>';
     $pdf->writeHTML($kop, true, false, true, false, '');
     
-    // Judul laporan
     $pdf->SetFont('times', 'B', 14);
     $pdf->Cell(0, 10, 'LAPORAN DATA ADMINISTRATOR SISTEM', 0, 1, 'C');
     $pdf->SetFont('times', '', 10);
     $pdf->Cell(0, 5, 'Dicetak pada: ' . date('d/m/Y H:i') . ' WIB', 0, 1, 'C');
     $pdf->Ln(5);
     
-    // Buat tabel (Warna hijau muda e2efd9)
     $html = '<table border="1" cellpadding="6">
         <thead>
             <tr style="background-color:#e2efd9; font-weight:bold; text-align:center;">
@@ -99,7 +90,7 @@ if ($format === 'pdf') {
     
     // Tanda tangan
     $pdf->Ln(10);
-    $pdf->Cell(0, 5, 'Bojong Gede, ' . date('d F Y'), 0, 1, 'R');
+    $pdf->Cell(0, 5, getTanggalTtdIndo(), 0, 1, 'R');
     $pdf->Cell(0, 5, 'Pakar / Kepala Sistem', 0, 1, 'R');
     $pdf->Ln(20);
     $pdf->Cell(0, 5, '(__________________________)', 0, 1, 'R');
@@ -107,16 +98,12 @@ if ($format === 'pdf') {
     $pdf->Output('Laporan_Admin_Sistem_'.date('YmdHis').'.pdf', 'I');
     
 } elseif ($format === 'excel') {
-    // ==========================================
-    // EXCEL EXPORT
-    // ==========================================
     require_once '../vendor/phpoffice/phpspreadsheet/src/PhpSpreadsheet/Spreadsheet.php';
     require_once '../vendor/phpoffice/phpspreadsheet/src/PhpSpreadsheet/Writer/Xlsx.php';
     
     $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
     $sheet = $spreadsheet->getActiveSheet();
     
-    // Kop Surat Excel
     $sheet->setCellValue('A1', 'SISTEM PAKAR DIAGNOSIS PENYAKIT IKAN NILA');
     $sheet->mergeCells('A1:C1');
     $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
@@ -140,7 +127,6 @@ if ($format === 'pdf') {
     $sheet->mergeCells('A6:C6');
     $sheet->getStyle('A6')->getAlignment()->setHorizontal('center');
     
-    // Header tabel
     $sheet->setCellValue('A8', 'No');
     $sheet->setCellValue('B8', 'Username');
     $sheet->setCellValue('C8', 'Nama Administrator');
@@ -153,7 +139,6 @@ if ($format === 'pdf') {
     ];
     $sheet->getStyle('A8:C8')->applyFromArray($headerStyle);
     
-    // Isi data
     $row = 9;
     foreach ($admins as $key => $a) {
         $sheet->setCellValue('A'.$row, $key+1);
@@ -164,20 +149,17 @@ if ($format === 'pdf') {
         $row++;
     }
     
-    // Auto size
     foreach (range('A', 'C') as $columnID) {
         $sheet->getColumnDimension($columnID)->setAutoSize(true);
     }
     
-    // Border data
     $dataStyle = [
         'borders' => ['allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN]],
     ];
     $sheet->getStyle('A8:C'.($row-1))->applyFromArray($dataStyle);
     
-    // Tanda tangan
     $sheet->mergeCells('A'.($row+2).':C'.($row+2));
-    $sheet->setCellValue('A'.($row+2), 'Bojong Gede, ' . date('d F Y'));
+    $sheet->setCellValue('A'.($row+2), getTanggalTtdIndo());
     $sheet->getStyle('A'.($row+2))->getAlignment()->setHorizontal('right');
     
     $sheet->mergeCells('A'.($row+3).':C'.($row+3));
@@ -188,7 +170,6 @@ if ($format === 'pdf') {
     $sheet->setCellValue('A'.($row+7), '(__________________________)');
     $sheet->getStyle('A'.($row+7))->getAlignment()->setHorizontal('right');
     
-    // Output
     $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
     header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     header('Content-Disposition: attachment;filename="Laporan_Admin_Sistem_'.date('Ymd_His').'.xlsx"');

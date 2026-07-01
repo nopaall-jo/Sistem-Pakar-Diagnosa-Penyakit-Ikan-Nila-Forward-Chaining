@@ -1,242 +1,209 @@
 <?php
-// Pastikan session sudah dimulai untuk menangkap pesan sukses/error
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 require_once '../../config/database.php';
 require_once '../../includes/header.php';
 
 try {
-    // 1. Ambil data relasi (Aturan) 
-    // SINKRONISASI: Menggunakan id_aturan sesuai struktur tabel kamu
-    $sql_relasi = "SELECT a.id_aturan, p.kode_penyakit, p.nama_penyakit, g.kode_gejala, g.nama_gejala 
+    // 0. Self-Healing Schema
+    $check_col = $pdo->query("SHOW COLUMNS FROM tbl_aturan LIKE 'kode_aturan'")->rowCount();
+    if ($check_col === 0) {
+        $pdo->exec("ALTER TABLE tbl_aturan ADD COLUMN kode_aturan VARCHAR(10) AFTER id_aturan");
+        $stmt_old = $pdo->query("SELECT kode_penyakit, MIN(id_aturan) as min_id FROM tbl_aturan GROUP BY kode_penyakit ORDER BY min_id ASC");
+        $no = 1;
+        $update_old = $pdo->prepare("UPDATE tbl_aturan SET kode_aturan = ? WHERE kode_penyakit = ?");
+        foreach ($stmt_old->fetchAll(PDO::FETCH_ASSOC) as $d) {
+            $update_old->execute(['R' . str_pad($no++, 2, '0', STR_PAD_LEFT), $d['kode_penyakit']]);
+        }
+    }
+
+    // 1. Fetch Grouped Rules
+    $relasi = $pdo->query("SELECT a.kode_aturan, p.kode_penyakit, p.nama_penyakit, 
+                          GROUP_CONCAT(g.kode_gejala ORDER BY CAST(SUBSTRING(g.kode_gejala, 2) AS UNSIGNED) ASC) as gejala_codes, 
+                          GROUP_CONCAT(g.nama_gejala ORDER BY CAST(SUBSTRING(g.kode_gejala, 2) AS UNSIGNED) ASC SEPARATOR '||') as gejala_names
                    FROM tbl_aturan a
                    JOIN tbl_penyakit p ON a.kode_penyakit = p.kode_penyakit
                    JOIN tbl_gejala g ON a.kode_gejala = g.kode_gejala
-                   ORDER BY p.kode_penyakit ASC, CAST(SUBSTRING(g.kode_gejala, 2) AS UNSIGNED) ASC";
-    
-    $stmt = $pdo->query($sql_relasi);
-    $relasi = $stmt->fetchAll();
+                   GROUP BY a.kode_aturan, p.kode_penyakit, p.nama_penyakit
+                   ORDER BY CAST(SUBSTRING(a.kode_aturan, 2) AS UNSIGNED) ASC")->fetchAll(PDO::FETCH_ASSOC);
 
-    // 2. Ambil data penyakit untuk dropdown Modal Tambah
-    $sql_penyakit = "SELECT kode_penyakit, nama_penyakit FROM tbl_penyakit ORDER BY kode_penyakit ASC";
-    $penyakit = $pdo->query($sql_penyakit)->fetchAll();
+    // 2. Diseases without rules
+    $penyakit = $pdo->query("SELECT kode_penyakit, nama_penyakit FROM tbl_penyakit WHERE kode_penyakit NOT IN (SELECT DISTINCT kode_penyakit FROM tbl_aturan) ORDER BY kode_penyakit ASC")->fetchAll(PDO::FETCH_ASSOC);
 
-    // 3. Ambil data gejala untuk dropdown Modal Tambah
-    // Diurutkan secara numerik (G1, G2, G10) agar admin tidak bingung saat memilih
-    $sql_gejala = "SELECT kode_gejala, nama_gejala 
-                   FROM tbl_gejala 
-                   ORDER BY CAST(SUBSTRING(kode_gejala, 2) AS UNSIGNED) ASC";
-    $gejala = $pdo->query($sql_gejala)->fetchAll();
+    // 3. Symptoms list
+    $gejala = $pdo->query("SELECT kode_gejala, nama_gejala FROM tbl_gejala ORDER BY CAST(SUBSTRING(kode_gejala, 2) AS UNSIGNED) ASC")->fetchAll(PDO::FETCH_ASSOC);
 
-} catch (PDOException $e) {
-    // Menampilkan pesan error yang lebih spesifik jika kueri gagal
-    die("Error mengambil data relasi: " . $e->getMessage());
-}
+    // 4. Next rule code
+    $stmt_max = $pdo->query("SELECT MAX(CAST(SUBSTRING(kode_aturan, 2) AS UNSIGNED)) as max_rule FROM tbl_aturan");
+    $next_kode_aturan = 'R' . str_pad(($stmt_max->fetch(PDO::FETCH_ASSOC)['max_rule'] ?? 0) + 1, 2, '0', STR_PAD_LEFT);
+
+} catch (PDOException $e) { die("Error: " . $e->getMessage()); }
 ?>
 
-<?php if (isset($_SESSION['success'])): ?>
-    <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-3 mb-4" role="alert">
-        <i class="bi bi-check-circle-fill me-2"></i><?= $_SESSION['success'] ?>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-    <?php unset($_SESSION['success']); ?>
-<?php endif; ?>
 
-<?php if (isset($_SESSION['error'])): ?>
-    <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm rounded-3 mb-4" role="alert">
-        <i class="bi bi-exclamation-triangle-fill me-2"></i><?= $_SESSION['error'] ?>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-    <?php unset($_SESSION['error']); ?>
-<?php endif; ?>
 
+<!-- Main Table Card -->
 <div class="card shadow-sm border-0 mb-4">
     <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-        <h6 class="m-0 font-weight-bold text-primary">
-            <i class="bi bi-diagram-3-fill me-2"></i>Basis Pengetahuan (Aturan)
-        </h6>
+        <h6 class="m-0 font-weight-bold text-primary"><i class="bi bi-diagram-3-fill me-2"></i>Aturan (Relasi)</h6>
         <div class="d-flex gap-2">
-            <button class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#printRelasiModal">
-                <i class="bi bi-printer me-1"></i> Cetak
-            </button>
-            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#tambahRelasiModal">
-                <i class="bi bi-plus-lg me-1"></i> Tambah Aturan
-            </button>
+            <a href="../../process/print_relasi.php?format=pdf&group_by=penyakit" target="_blank" class="btn btn-outline-success btn-sm"><i class="bi bi-printer"></i> Cetak</a>
+            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#tambahRelasiModal"><i class="bi bi-plus-lg"></i> Tambah Aturan</button>
         </div>
     </div> 
     <div class="card-body p-3">
         <div class="table-responsive">
-            <table class="table table-hover table-striped table-bordered align-middle" id="dataTable" width="100%" cellspacing="0">
+            <table class="table table-hover table-striped table-bordered align-middle" id="dataTable" width="100%">
                 <thead class="table-light text-center">
                     <tr>
-                        <th class="text-center" width="5%">No</th>
-                        <th width="40%">Data Penyakit</th>
+                        <th width="5%">No</th>
+                        <th width="15%">Kode Aturan</th>
+                        <th width="30%">Penyakit</th>
                         <th width="40%">Gejala Terkait</th>
-                        <th class="text-center" width="15%">Aksi</th>
+                        <th width="10%">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php if (count($relasi) > 0): ?>
-                        <?php foreach ($relasi as $key => $r): ?>
-                        <tr>
-                            <td class="text-center text-muted small"><?= $key + 1 ?></td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle me-2">
-                                        <?= htmlspecialchars($r['kode_penyakit']) ?>
-                                    </span>
-                                    <span class="fw-bold text-dark"><?= htmlspecialchars($r['nama_penyakit']) ?></span>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <span class="badge bg-success-subtle text-success border border-success-subtle me-2">
-                                        <?= htmlspecialchars($r['kode_gejala']) ?>
-                                    </span>
-                                    <span class="text-secondary"><?= htmlspecialchars($r['nama_gejala']) ?></span>
-                                </div>
-                            </td>
-                            <td class="text-center">
-                                <div class="btn-group shadow-sm">
-                                    <button type="button" class="btn btn-sm btn-light border text-danger delete-relasi" 
-                                            data-id="<?= $r['id_aturan'] ?>" title="Hapus Aturan">
-                                        <i class="bi bi-trash3" style="pointer-events: none;"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <tr>
-                            <td colspan="4" class="text-center py-5">
-                                <i class="bi bi-node-plus d-block fs-1 text-muted mb-2"></i>
-                                <span class="text-muted">Belum ada aturan IF-THEN yang dikonfigurasi.</span>
-                            </td>
-                        </tr>
-                    <?php endif; ?>
+                    <?php foreach ($relasi as $key => $r): 
+                        $gejala_codes = explode(',', $r['gejala_codes']);
+                        $gejala_names = explode('||', $r['gejala_names']);
+                    ?>
+                    <tr>
+                        <td class="text-center text-muted small"><?= $key + 1 ?></td>
+                        <td class="text-center fw-bold text-primary"><?= htmlspecialchars($r['kode_aturan']) ?></td>
+                        <td><span class="badge bg-danger-subtle text-danger border border-danger-subtle me-1"><?= $r['kode_penyakit'] ?></span> <strong><?= htmlspecialchars($r['nama_penyakit']) ?></strong></td>
+                        <td>
+                            <ul class="list-unstyled mb-0 pl-0 small">
+                                <?php foreach ($gejala_codes as $idx => $gc): ?>
+                                <li class="mb-1 text-secondary">
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle me-1"><?= $gc ?></span> <?= htmlspecialchars($gejala_names[$idx] ?? '') ?>
+                                </li>
+                                <?php endforeach; ?>
+                            </ul>
+                        </td>
+                        <td class="text-center">
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-sm btn-light border text-warning edit-relasi" data-kode-aturan="<?= $r['kode_aturan'] ?>" data-kode-penyakit="<?= $r['kode_penyakit'] ?>" data-nama-penyakit="<?= $r['nama_penyakit'] ?>" data-gejala-list="<?= $r['gejala_codes'] ?>"><i class="bi bi-pencil-square"></i></button>
+                                <button type="button" class="btn btn-sm btn-light border text-danger delete-relasi" data-kode-penyakit="<?= $r['kode_penyakit'] ?>" data-nama-penyakit="<?= $r['nama_penyakit'] ?>"><i class="bi bi-trash3"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
                 </tbody>
             </table>
         </div>
     </div>
 </div>
 
-<div class="modal fade" id="printRelasiModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-light">
-                <h5 class="modal-title fw-bold"><i class="bi bi-printer me-2"></i>Cetak Basis Pengetahuan</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form id="formPrintRelasi" action="<?= $base_url ?>process/print_relasi.php" method="post" target="_blank">
-                <div class="modal-body p-4">
-                    <label class="form-label fw-bold mb-3">Pilih Format Dokumen</label>
-                    <div class="row g-3 mb-4">
-                        <div class="col-6">
-                            <input type="radio" class="btn-check" name="format" id="formatPDF" value="pdf" checked>
-                            <label class="btn btn-outline-danger w-100 py-3" for="formatPDF">
-                                <i class="bi bi-file-earmark-pdf fs-2 d-block mb-1"></i> PDF
-                            </label>
-                        </div>
-                        <div class="col-6">
-                            <input type="radio" class="btn-check" name="format" id="formatExcel" value="excel">
-                            <label class="btn btn-outline-success w-100 py-3" for="formatExcel">
-                                <i class="bi bi-file-earmark-excel fs-2 d-block mb-1"></i> Excel
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="mb-0">
-                        <label for="groupBy" class="form-label fw-bold">Metode Pengelompokan</label>
-                        <select class="form-select shadow-sm" id="groupBy" name="group_by">
-                            <option value="none">Data Mentah (Sesuai Input)</option>
-                            <option value="penyakit">Urutkan Per Penyakit</option>
-                            <option value="gejala">Urutkan Per Gejala</option>
-                        </select>
-                        <small class="text-muted mt-2 d-block">Membantu proses pengecekan aturan yang tumpang tindih.</small>
-                    </div>
-                </div>
-                <div class="modal-footer border-0 bg-light">
-                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Tutup</button>
-                    <button type="submit" class="btn btn-primary px-4">
-                        <i class="bi bi-printer me-1"></i> Cetak Sekarang
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
 <!-- Modal Tambah Relasi -->
 <div class="modal fade" id="tambahRelasiModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow-lg">
             <div class="modal-header bg-primary text-white py-3">
-                <h5 class="modal-title fw-bold"><i class="bi bi-plus-circle me-2"></i>Tambah Aturan Baru</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title fw-bold"><i class="bi bi-plus-circle me-2"></i>Tambah Aturan</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form id="formTambahRelasi" action="../../process/relasi_process.php" method="post">
                 <input type="hidden" name="action" value="create">
                 <div class="modal-body p-4">
-                    <div class="alert alert-info border-0 shadow-sm small mb-4">
-                        <i class="bi bi-info-circle-fill me-2"></i>
-                        Pilih satu penyakit dan <strong>satu atau lebih gejala</strong> untuk membentuk basis pengetahuan <strong>Forward Chaining</strong>.
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Kode Aturan</label>
+                        <input type="text" class="form-control bg-light fw-bold text-primary" value="<?= $next_kode_aturan ?>" readonly>
                     </div>
-                    
-                    <div class="mb-4">
-                        <label class="form-label fw-bold"><i class="bi bi-bug me-1 text-danger"></i>Pilih Penyakit</label>
-                        <select class="form-select select2-relasi" name="kode_penyakit" required>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Pilih Penyakit</label>
+                        <?php if (count($penyakit) > 0): ?>
+                        <select class="form-select select2-penyakit-tambah" name="kode_penyakit" required>
                             <option value="">-- Cari Penyakit --</option>
                             <?php foreach ($penyakit as $p): ?>
-                            <option value="<?= $p['kode_penyakit'] ?>">
-                                [<?= $p['kode_penyakit'] ?>] <?= htmlspecialchars($p['nama_penyakit']) ?>
-                            </option>
+                            <option value="<?= $p['kode_penyakit'] ?>">[<?= $p['kode_penyakit'] ?>] <?= htmlspecialchars($p['nama_penyakit']) ?></option>
                             <?php endforeach; ?>
                         </select>
+                        <?php else: ?>
+                        <div class="alert alert-warning border-0 py-2 small mb-0">Semua penyakit sudah memiliki aturan.</div>
+                        <?php endif; ?>
                     </div>
-
                     <div class="mb-2">
-                        <label class="form-label fw-bold"><i class="bi bi-thermometer-half me-1 text-success"></i>Pilih Gejala Terkait</label>
-                        <select class="form-select select2-relasi" name="kode_gejala[]" multiple="multiple" required>
-                            <?php foreach ($gejala as $g): ?>
-                            <option value="<?= $g['kode_gejala'] ?>">
-                                [<?= $g['kode_gejala'] ?>] <?= htmlspecialchars($g['nama_gejala']) ?>
-                            </option>
-                            <?php endforeach; ?>
-                        </select>
-                        <small class="text-muted d-block mt-2">*Anda dapat memilih beberapa gejala sekaligus.</small>
+                        <label class="form-label fw-bold">Cari Gejala</label>
+                        <input type="text" id="searchGejalaTambah" class="form-control mb-2" placeholder="Cari kode/nama gejala...">
+                        <label class="form-label fw-bold d-flex justify-content-between"><span>Pilih Gejala Terkait</span><span id="selectedCountTambah" class="text-muted small">0 terpilih</span></label>
+                        <div class="border rounded p-3 bg-light" style="max-height: 250px; overflow-y: auto;" id="gejalaContainerTambah">
+                            <div class="row g-2">
+                                <?php foreach ($gejala as $g): ?>
+                                <div class="col-md-6 gejala-item">
+                                    <div class="card h-100 border-0 p-2 bg-white rounded shadow-sm">
+                                        <div class="form-check">
+                                            <input class="form-check-input gejala-checkbox-tambah" type="checkbox" name="kode_gejala[]" value="<?= $g['kode_gejala'] ?>" id="gt_<?= $g['kode_gejala'] ?>">
+                                            <label class="form-check-label small" for="gt_<?= $g['kode_gejala'] ?>"><span class="badge bg-success-subtle text-success me-1"><?= $g['kode_gejala'] ?></span> <?= htmlspecialchars($g['nama_gejala']) ?></label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer bg-light border-0">
                     <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary px-4 fw-bold">Simpan Aturan</button>
+                    <button type="submit" class="btn btn-primary px-4 fw-bold" <?= count($penyakit) == 0 ? 'disabled' : '' ?>>Simpan</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<!-- Modal Delete Confirmation -->
-<div class="modal fade" id="deleteRelasiModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-danger text-white py-3">
-                <h5 class="modal-title fw-bold"><i class="bi bi-exclamation-triangle me-2"></i>Hapus Aturan</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+<!-- Modal Edit Relasi -->
+<div class="modal fade" id="editRelasiModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-warning text-dark py-3">
+                <h5 class="modal-title fw-bold"><i class="bi bi-pencil-square me-2"></i>Edit Aturan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body p-4 text-center">
-                <i class="bi bi-trash3 text-danger mb-3" style="font-size: 3rem;"></i>
-                <p class="mb-0">Apakah Anda yakin ingin menghapus relasi penyakit-gejala ini?</p>
-                <small class="text-muted">Aturan ini akan dihapus dari mesin inferensi sistem pakar.</small>
-            </div>
-            <div class="modal-footer bg-light border-0">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                <form id="formDeleteRelasi" action="../../process/relasi_process.php" method="POST" style="display:none;">
-                    <input type="hidden" name="action" value="delete">
-                    <input type="hidden" id="deleteIdAturan" name="id_aturan">
-                </form>
-            </div>
+            <form id="formEditRelasi" action="../../process/relasi_process.php" method="post">
+                <input type="hidden" name="action" value="update">
+                <input type="hidden" name="kode_penyakit" id="editKodePenyakit">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Kode Aturan</label>
+                        <input type="text" class="form-control bg-light fw-bold text-primary" id="editKodeAturanDisplay" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Penyakit</label>
+                        <input type="text" class="form-control bg-light fw-bold" id="editNamaPenyakitDisplay" readonly>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label fw-bold">Cari Gejala</label>
+                        <input type="text" id="searchGejalaEdit" class="form-control mb-2" placeholder="Cari kode/nama gejala...">
+                        <label class="form-label fw-bold d-flex justify-content-between"><span>Pilih Gejala Terkait</span><span id="selectedCountEdit" class="text-muted small">0 terpilih</span></label>
+                        <div class="border rounded p-3 bg-light" style="max-height: 250px; overflow-y: auto;" id="gejalaContainerEdit">
+                            <div class="row g-2">
+                                <?php foreach ($gejala as $g): ?>
+                                <div class="col-md-6 gejala-item">
+                                    <div class="card h-100 border-0 p-2 bg-white rounded shadow-sm">
+                                        <div class="form-check">
+                                            <input class="form-check-input gejala-checkbox-edit" type="checkbox" name="kode_gejala[]" value="<?= $g['kode_gejala'] ?>" id="ge_<?= $g['kode_gejala'] ?>">
+                                            <label class="form-check-label small" for="ge_<?= $g['kode_gejala'] ?>"><span class="badge bg-success-subtle text-success me-1"><?= $g['kode_gejala'] ?></span> <?= htmlspecialchars($g['nama_gejala']) ?></label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-0">
+                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-warning px-4 fw-bold text-dark">Simpan Perubahan</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
+
+<form id="formDeleteRelasi" action="../../process/relasi_process.php" method="POST" style="display:none;">
+    <input type="hidden" name="action" value="delete">
+    <input type="hidden" id="deleteKodePenyakitInput" name="kode_penyakit">
+</form>
 
 <?php require_once '../../includes/footer.php'; ?>
 
@@ -247,82 +214,78 @@ try {
 
 <script>
 $(document).ready(function() {
-    // --- KODE BARU: Auto Close Alert Notifikasi ---
+    window.setTimeout(function() { $(".alert").slideUp(500); }, 4000);
 
-    // 1. Alert akan otomatis naik dan menghilang setelah 3 detik (3000 milidetik)
-    window.setTimeout(function() {
-        $(".alert").not(".modal .alert").slideUp(500, function(){
-            $(this).remove(); 
+    if ($.fn.select2) {
+        $('.select2-penyakit-tambah').select2({ dropdownParent: $('#tambahRelasiModal'), theme: 'bootstrap-5', width: '100%' });
+    }
+
+    // Live search function
+    function setupSearch(inputEl, containerEl) {
+        $(inputEl).on('keyup', function() {
+            var val = $(this).val().toLowerCase();
+            $(containerEl + ' .gejala-item').filter(function() {
+                $(this).toggle($(this).text().toLowerCase().indexOf(val) > -1);
+            });
         });
-    }, 5791);
+    }
+    setupSearch('#searchGejalaTambah', '#gejalaContainerTambah');
+    setupSearch('#searchGejalaEdit', '#gejalaContainerEdit');
 
-    var modalAlertTimer;// Variabel untuk menampung hitungan mundur modal
-    // 2. KODE BARU: Jalankan timer SETIAP KALI modal "Tambah Aturan" selesai terbuka
-    $('#tambahRelasiModal').on('shown.bs.modal', function () {
-        var $alertInfo = $(this).find('.alert-info');
-        $alertInfo.show(); // Pastikan alert biru tampil dulu setiap modal dibuka
-        clearTimeout(modalAlertTimer);
-        modalAlertTimer = setTimeout(function() {
-            $alertInfo.slideUp(500);
-        }, 5000);
+    $('.gejala-checkbox-tambah').on('change', function() {
+        $('#selectedCountTambah').text($('.gejala-checkbox-tambah:checked').length + ' terpilih');
+    });
+    $('.gejala-checkbox-edit').on('change', function() {
+        $('#selectedCountEdit').text($('.gejala-checkbox-edit:checked').length + ' terpilih');
     });
 
-    // 3. Bersihkan timer kalau modal ditutup sebelum 5 detik (opsional, biar rapi)
-    $('#tambahRelasiModal').on('hidden.bs.modal', function () {
-        clearTimeout(modalAlertTimer);
-    });
-    
-    // 4. Inisialisasi Select2 untuk Modal Tambah Aturan
-    $('.select2-relasi').select2({
-        dropdownParent: $('#tambahRelasiModal'),
-        theme: 'bootstrap-5',
-        width: '100%',
-        placeholder: "--- Pilih satu atau lebih gejala ---",
-        allowClear: true
+    // Form submit validation
+    function validateForm(formId, checkboxClass) {
+        $(formId).on('submit', function(e) {
+            if ($(checkboxClass + ':checked').length === 0) {
+                e.preventDefault();
+                Swal.fire({ title: 'Pilih Gejala!', text: 'Pilih minimal satu gejala klinis.', icon: 'warning' });
+            }
+        });
+    }
+    validateForm('#formTambahRelasi', '.gejala-checkbox-tambah');
+    validateForm('#formEditRelasi', '.gejala-checkbox-edit');
+
+    // Bind Edit Modal data
+    $(document).on('click', '.edit-relasi', function() {
+        var kp = $(this).data('kode-penyakit');
+        $('#editKodeAturanDisplay').val($(this).data('kode-aturan'));
+        $('#editKodePenyakit').val(kp);
+        $('#editNamaPenyakitDisplay').val('[' + kp + '] ' + $(this).data('nama-penyakit'));
+
+        $('.gejala-checkbox-edit').prop('checked', false);
+        ($(this).data('gejala-list') || '').toString().split(',').forEach(function(g) {
+            $('#ge_' + g.trim()).prop('checked', true);
+        });
+
+        $('#selectedCountEdit').text($('.gejala-checkbox-edit:checked').length + ' terpilih');
+        $('#editRelasiModal').modal('show');
     });
 
-    // 5. Delete Relasi dengan SweetAlert2
+    // Delete relation
     $(document).on('click', '.delete-relasi', function(e) {
         e.preventDefault();
-        // Mengambil id_aturan dari atribut data-id pada tombol
-        var idRelasi = $(this).data('id'); 
-        
+        var kp = $(this).data('kode-penyakit');
+        var np = $(this).data('nama-penyakit');
         Swal.fire({
             title: 'Hapus Aturan?',
-            text: "Hubungan penyakit dan gejala ini akan dihapus permanen.",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#dc3545',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: '<i class="bi bi-trash"></i> Ya, Hapus Aturan',
-            cancelButtonText: 'Batal',
-            reverseButtons: true
+            text: "Hapus aturan penyakit [" + kp + "] " + np + " beserta seluruh gejalanya?",
+            icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', confirmButtonText: 'Ya, Hapus', cancelButtonText: 'Batal'
         }).then((result) => {
             if (result.isConfirmed) {
-                // Memasukkan id_aturan ke input hidden dan submit form
-                $('#deleteIdAturan').val(idRelasi);
+                $('#deleteKodePenyakitInput').val(kp);
                 $('#formDeleteRelasi').submit();
             }
         });
     });
 
-    // 6. DataTable Initialization (Pencarian & Pagination)
     if (!$.fn.DataTable.isDataTable('#dataTable')) {
-        $('#dataTable').DataTable({
-            "pageLength": 10,
-            "language": {
-                "search": "Cari Aturan:",
-                "lengthMenu": "Tampilkan _MENU_ data",
-                "zeroRecords": "Tidak ada aturan yang cocok",
-                "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ aturan",
-                "paginate": {
-                    "next": "Lanjut",
-                    "previous": "Kembali"
-                }
-            }
-        });
+        $('#dataTable').DataTable({ "pageLength": 10, "language": { "search": "Cari Aturan:" } });
     }
 });
 </script>
-
-<?php require_once '../../includes/footer.php'; ?>

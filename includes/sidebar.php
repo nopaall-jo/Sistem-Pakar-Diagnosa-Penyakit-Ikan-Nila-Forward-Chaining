@@ -1,31 +1,72 @@
 <?php
-// Ambil nama file untuk logika menu aktif yang presisi
 $current_page = basename($_SERVER['PHP_SELF']);
 ?>
 
-<div class="sidebar d-flex flex-column flex-shrink-0 p-3 shadow-sm custom-sidebar" style="background-color: var(--light); border-right: 2px solid var(--dark); width: 260px; min-height: 100vh;">
-    
-    <a href="<?= $base_url ?>pages/admin/dashboard.php"class="sidebar-brand d-flex align-items-center mb-2 mt-0 px-2 text-decoration-none">
-    <div class="d-flex align-items-center justify-content-center rounded-3 me-2"
-         style="min-width: 40px; height: 40px; border: 2px solid var(--dark); box-shadow: 3px 3px 0px var(--dark);">
-        <i class="fa-solid fa-fish-fins"></i>
+<style>
+    .custom-sidebar .nav-pills .nav-link {
+        color: #ed5f59 !important; /* Warna coral/merah untuk teks menu tidak aktif */
+        font-weight: 500;
+        border-radius: 8px;
+    }
+    .custom-sidebar .nav-pills .nav-link i {
+        color: #ed5f59 !important; /* Warna ikon tidak aktif */
+    }
+    .custom-sidebar .nav-pills .nav-link:hover {
+        background-color: rgba(237, 95, 89, 0.1) !important;
+        color: #ed5f59 !important;
+    }
+    .custom-sidebar .nav-pills .nav-link.active {
+        background-color: #0b7c79 !important; /* Warna toska gelap untuk background menu aktif */
+        color: #ffffff !important; /* Teks putih untuk menu aktif */
+        font-weight: 600;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .custom-sidebar .nav-pills .nav-link.active i {
+        color: #ffffff !important; /* Ikon putih untuk menu aktif */
+    }
+</style>
+
+<nav class="navbar fixed-top d-md-none px-3 shadow-sm w-100" style="background-color: var(--light); border-bottom: 2px solid var(--dark); z-index: 1040;">
+    <div class="container-fluid p-0">
+        <a class="navbar-brand fw-bold text-dark d-flex align-items-center" href="<?= $base_url ?>pages/admin/dashboard.php">
+            <img src="<?= $base_url ?>assets/img/Logo2.png" alt="Logo" height="24" class="me-2 rounded-1"> Pakar Nila Dzawil Farm
+        </a>
+        <button class="navbar-toggler border-dark" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarResponsive" aria-controls="sidebarResponsive">
+            <span class="navbar-toggler-icon"></span>
+        </button>
     </div>
-    <div class="d-flex flex-column justify-content-center">
-        <span class="fw-bold fs-5 text-dark lh-sm" style="letter-spacing: -0.3px;">
-            Sistem Pakar <span style="color: var(--tertiary);">Ikan Nila</span>
-        </span>
-    </div>
-</a>
+</nav>
+
+<div class="offcanvas-md offcanvas-start custom-sidebar d-flex flex-column flex-shrink-0 p-3 shadow-sm" tabindex="-1" id="sidebarResponsive" style="background-color: var(--light); border-right: 2px solid var(--dark); width: 260px; min-height: 100vh;">
     
-    <ul class="nav nav-pills flex-column mb-auto gap-1">
-        <li class="nav-item mb-2">
+    <div class="offcanvas-header d-md-none border-bottom border-dark mb-3 p-0 pb-3">
+        <h5 class="offcanvas-title fw-bold">Menu Navigasi</h5>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" data-bs-target="#sidebarResponsive" aria-label="Close"></button>
+    </div>
+
+    <a href="<?= $base_url ?>pages/admin/dashboard.php" class="sidebar-brand d-flex align-items-center mb-0 mt-0 px-2 text-decoration-none">
+        <div class="d-flex align-items-center justify-content-center rounded-3 me-2"
+             style="min-width: 40px; height: 40px; border: 2px solid var(--dark); box-shadow: 3px 3px 0px var(--dark); background-color: white; overflow: hidden;">
+            <img src="<?= $base_url ?>assets/img/Logo2.png" alt="Logo" style="width: 100%; height: 100%; object-fit: cover;">
+        </div>
+        <div class="d-flex flex-column justify-content-center">
+            <span class="fw-bold fs-5 text-dark lh-sm" style="letter-spacing: -0.3px;">
+                Sistem Pakar <br><span style="color: #ed5f59;">Ikan Nila</span> <br>
+                <span class="badge border fw-bold text-uppercase mt-1" style="font-size: 0.6rem; letter-spacing: 0.5px; background-color: #e0f2f1; color: #00796b; border-color: #b2dfdb !important; padding: 2px 6px;">Dzawil Farm</span>
+            </span>
+        </div>
+    </a>
+    
+    <ul class="nav nav-pills flex-column mb-auto gap-2 mt-2">
+        
+        <li class="nav-item">
             <a href="<?= $base_url ?>pages/admin/dashboard.php" class="nav-link <?= ($current_page == 'dashboard.php') ? 'active' : '' ?>">
                 <i class="bi bi-grid-1x2-fill me-3"></i> Dashboard
             </a>
         </li>
         
-        <li class="mt-3 mb-2 px-3">
-            <div class="fw-bold text-uppercase" style="font-size: 0.75rem; color: var(--dark); letter-spacing: 1px;">Data Master</div>
+        <li class="mt-3 mb-1 px-3">
+            <div class="fw-bold text-uppercase" style="font-size: 0.75rem; color: #1a202c; letter-spacing: 1px;">Data Master</div>
         </li>
 
         <li class="nav-item">
@@ -46,8 +87,8 @@ $current_page = basename($_SERVER['PHP_SELF']);
             </a>
         </li>
         
-        <li class="mt-4 mb-2 px-3">
-            <div class="fw-bold text-uppercase" style="font-size: 0.75rem; color: var(--dark); letter-spacing: 1px;">Proses Pakar</div>
+        <li class="mt-4 mb-1 px-3">
+            <div class="fw-bold text-uppercase" style="font-size: 0.75rem; color: #1a202c; letter-spacing: 1px;">Proses Pakar</div>
         </li>
 
         <li class="nav-item">
@@ -62,8 +103,8 @@ $current_page = basename($_SERVER['PHP_SELF']);
             </a>
         </li>
         
-        <li class="mt-4 mb-2 px-3">
-            <div class="fw-bold text-uppercase" style="font-size: 0.75rem; color: var(--dark); letter-spacing: 1px;">Laporan</div>
+        <li class="mt-4 mb-1 px-3">
+            <div class="fw-bold text-uppercase" style="font-size: 0.75rem; color: #1a202c; letter-spacing: 1px;">Laporan</div>
         </li>
 
         <li class="nav-item">
@@ -75,10 +116,10 @@ $current_page = basename($_SERVER['PHP_SELF']);
     
     <hr class="mt-4 mb-3 opacity-25" style="border-top: 2px dashed var(--dark);">
     
-    <div class="dropdown px-2 mb-2">
-        <a href="#" class="d-flex align-items-center text-dark text-decoration-none dropdown-toggle p-2 rounded-3 dropdown-user" id="dropdownUser1" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">
-            <div class="img-profile rounded-circle overflow-hidden d-flex align-items-center justify-content-center"style="background: white; border: 2px solid var(--dark); width: 35px; height: 35px;">
-                <img src="../../assets/img/logo4.png"alt="Logo Sistem"style="width: 70%; height: 70%; object-fit: contain;">
+    <div class="dropup px-2 mb-2">
+        <a href="#" class="d-flex align-items-center text-dark text-decoration-none dropdown-toggle p-2 rounded-3 dropdown-user" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
+            <div class="img-profile rounded-circle overflow-hidden d-flex align-items-center justify-content-center" style="background: white; border: 2px solid var(--dark); width: 35px; height: 35px;">
+                <img src="../../assets/img/logo4.png" alt="Logo Sistem" style="width: 70%; height: 70%; object-fit: contain;">
             </div>
             <strong class="ms-2 text-truncate" style="max-width: 140px;">
                 <?= htmlspecialchars($_SESSION['nama_admin'] ?? 'Administrator') ?>

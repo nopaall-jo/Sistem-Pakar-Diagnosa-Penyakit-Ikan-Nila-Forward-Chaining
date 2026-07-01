@@ -6,9 +6,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['action'])) {
     $start_date = $_GET['start_date'] ?? date('Y-m-01');
     $end_date = $_GET['end_date'] ?? date('Y-m-t');
     
-    // [1] SINKRONISASI KUERI UTAMA: Berlaku untuk Excel maupun PDF
-    // Menggunakan tbl_diagnosa, nama_pembudidaya, hasil_penyakit
-    $stmt = $pdo->prepare("SELECT d.tanggal_diagnosa, d.nama_pembudidaya, p.nama_penyakit, p.kode_penyakit, d.confidence 
+    $stmt = $pdo->prepare("SELECT d.tanggal_diagnosa, d.kode_sampel, p.nama_penyakit, p.kode_penyakit, d.confidence 
                           FROM tbl_diagnosa d 
                           LEFT JOIN tbl_penyakit p ON d.hasil_penyakit = p.kode_penyakit 
                           WHERE DATE(d.tanggal_diagnosa) BETWEEN ? AND ?
@@ -16,9 +14,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['action'])) {
     $stmt->execute([$start_date, $end_date]);
     $laporan = $stmt->fetchAll();
     
-    // ==========================================
-    // [2] LOGIKA EXPORT EXCEL
-    // ==========================================
     if ($_GET['action'] == 'export_excel') {
         header('Content-Type: application/vnd.ms-excel');
         header('Content-Disposition: attachment; filename="Laporan_Diagnosa_Ikan_Nila_' . date('Ymd') . '.xls"');
@@ -29,7 +24,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['action'])) {
               th { background-color: #e2efd9; font-weight: bold; text-align: center; }
               </style></head><body>';
         
-        // Kop Surat Excel
         echo '<table border="0" style="width: 100%; border: none;">
                 <tr>
                     <td colspan="5" style="text-align: center; border: none;">
@@ -42,18 +36,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['action'])) {
                 <tr><td colspan="5" style="border: none; height: 10px;"></td></tr>
                 <tr>
                     <td colspan="5" style="text-align: center; border: none;">
-                        <h2>LAPORAN HASIL DIAGNOSA</h2>
+                        <h2>LAPORAN HASIL DIAGNOSA BERDASARKAN KODE SAMPEL</h2>
                         <p>Periode: ' . date('d/m/Y', strtotime($start_date)) . ' s/d ' . date('d/m/Y', strtotime($end_date)) . '</p>
                     </td>
                 </tr>
               </table>';
         
-        // Tabel Data Excel
         echo '<table border="1">
                 <tr>
                     <th width="5%">No</th>
                     <th width="15%">Tanggal</th>
-                    <th width="30%">Nama Pembudidaya</th>
+                    <th width="30%">Kode Sampel</th>
                     <th width="30%">Hasil Penyakit</th>
                     <th width="20%">Tingkat Akurasi</th>
                 </tr>';
@@ -67,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['action'])) {
                 echo "<tr>
                         <td style='text-align: center;'>" . $no++ . "</td>
                         <td style='text-align: center;'>" . date('d/m/Y H:i', strtotime($row['tanggal_diagnosa'])) . "</td>
-                        <td>" . htmlspecialchars($row['nama_pembudidaya']) . "</td>
+                        <td>" . htmlspecialchars($row['kode_sampel']) . "</td>
                         <td>" . $nama_penyakit . "</td>
                         <td style='text-align: center;'>" . $akurasi . "</td>
                       </tr>";
@@ -77,12 +70,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['action'])) {
         }
         echo "</table>";
         
-        // Tanda Tangan Excel
         echo '<table border="0" style="width: 100%; border: none; margin-top: 30px;">
                 <tr>
                     <td colspan="3" style="border: none;"></td>
                     <td colspan="2" style="text-align: center; border: none;">
-                        <p>Bojong Gede, ' . date('d F Y') . '</p>
+                        <p>' . getTanggalTtdIndo() . '</p>
                         <p>Admin Sistem / Pakar</p>
                         <br><br><br><br>
                         <p><strong>(__________________________)</strong></p>
@@ -93,14 +85,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['action'])) {
         exit();
     } 
     
-    // ==========================================
-    // [3] LOGIKA EXPORT PDF (Menggunakan TCPDF)
-    // ==========================================
     elseif ($_GET['action'] == 'export_pdf') {
-        // Pastikan path ke tcpdf.php ini sudah benar sesuai struktur folder kamu!
         require_once '../vendor/tecnickcom/tcpdf/tcpdf.php';
         
-        // Inisialisasi TCPDF (Landscape, A4)
         $pdf = new TCPDF('L', PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
         
         $pdf->SetCreator(PDF_CREATOR);
@@ -114,7 +101,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['action'])) {
         
         $pdf->SetFont('helvetica', '', 10);
         
-        // Kop Surat PDF
         $kop_surat = '
         <table border="0" cellpadding="2" cellspacing="0" width="100%">
             <tr>
@@ -132,14 +118,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['action'])) {
         </div>';
         $pdf->writeHTML($kop_surat, true, false, false, false, '');
         
-        // Tabel Data PDF
         $tbl = '
         <table border="1" cellpadding="6" width="100%">
             <thead>
                 <tr style="background-color:#e2efd9; font-weight:bold; text-align:center;">
                     <th width="5%">No</th>
                     <th width="20%">Tanggal & Jam</th>
-                    <th width="25%">Nama Pembudidaya</th>
+                    <th width="25%">Kode Sampel</th>
                     <th width="25%">Hasil Penyakit</th>
                     <th width="10%">Kode</th>
                     <th width="15%">Akurasi</th>
@@ -164,7 +149,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['action'])) {
                     <tr style="' . $row_color . '">
                         <td width="5%" align="center">' . $no++ . '</td>
                         <td width="20%" align="center">' . date('d/m/Y H:i', strtotime($row['tanggal_diagnosa'])) . '</td>
-                        <td width="25%">' . htmlspecialchars($row['nama_pembudidaya']) . '</td>
+                        <td width="25%">' . htmlspecialchars($row['kode_sampel']) . '</td>
                         <td width="25%">' . $nama_penyakit . '</td>
                         <td width="10%" align="center">' . $kode_penyakit . '</td>
                         <td width="15%" align="center"><strong>' . $confidence . '%</strong></td>
@@ -177,14 +162,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['action'])) {
         
         $pdf->writeHTML($tbl, true, false, false, false, '');
         
-        // Tanda Tangan PDF
         $ttd = '
         <br><br><br>
         <table border="0" cellpadding="0" cellspacing="0" width="100%">
             <tr>
                 <td width="65%"></td>
                 <td width="35%" align="center">
-                    <p>Bojong Gede, ' . date('d F Y') . '</p>
+                    <p>' . getTanggalTtdIndo() . '</p>
                     <p>Pakar / Admin Sistem</p>
                     <br><br><br><br>
                     <p><strong>(________________________)</strong></p>
@@ -199,7 +183,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['action'])) {
     }
 }
 
-// Jika diakses secara langsung tanpa action, tendang balik ke halaman laporan
 header("Location: ../pages/admin/laporan.php");
 exit();
 ?>

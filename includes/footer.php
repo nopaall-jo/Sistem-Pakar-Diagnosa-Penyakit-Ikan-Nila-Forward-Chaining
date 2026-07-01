@@ -1,7 +1,7 @@
 </div> 
 <footer class="bg-white py-3 mt-4 border-top">
     <div class="container-fluid text-center">
-    
+        <p class="mb-0 opacity-75 small text-muted">Sistem Pakar Diagnosa Penyakit Ikan Nila | Skripsi Teknik Informatika | Naufal Rafif (202243501684) &copy; <?= date('Y') ?> Dzawil Farm - Bojonggede, Bogor</p>
     </div>
 </footer>
             
@@ -20,13 +20,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
-    <!-- TAMBAHAN BARU: Library Chart.js untuk Grafik Dashboard -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <script src="<?= $base_url ?>assets/js/script.js"></script>
     
     <script>
-    // 1. SweetAlert Konfirmasi Hapus (Sudah Di-Upgrade jadi Dinamis)
     function confirmDelete(id, url = 'delete_riwayat.php') {
         Swal.fire({
             title: 'Apakah Anda yakin?',
@@ -49,12 +47,23 @@
     // 2. Toastr Notifikasi Alert (Membaca Session PHP)
     $(document).ready(function() {
         <?php if (isset($_SESSION['success'])): ?>
-            toastr.success('<?= $_SESSION['success'] ?>');
+            Swal.fire({
+                title: 'Berhasil!',
+                html: '<?= $_SESSION['success'] ?>',
+                icon: 'success',
+                timer: 3000,
+                showConfirmButton: false
+            });
             <?php unset($_SESSION['success']); ?>
         <?php endif; ?>
 
         <?php if (isset($_SESSION['error'])): ?>
-            toastr.error('<?= $_SESSION['error'] ?>');
+            Swal.fire({
+                title: 'Gagal!',
+                html: '<?= $_SESSION['error'] ?>',
+                icon: 'error',
+                confirmButtonColor: '#0b7c79'
+            });
             <?php unset($_SESSION['error']); ?>
         <?php endif; ?>
     });

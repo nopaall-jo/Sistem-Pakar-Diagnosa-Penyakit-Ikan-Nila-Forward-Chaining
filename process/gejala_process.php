@@ -1,18 +1,12 @@
 <?php
-// 1. WAJIB: Mulai session di baris paling atas
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// 2. Hubungkan ke database
 require_once '../config/database.php';
 
-// Tentukan URL tujuan balik (pake path relatif biar aman)
 $return_url = "../pages/admin/gejala.php";
 
-// ==========================================================
-// A. LOGIKA READ (Untuk AJAX saat tombol Edit ditekan)
-// ==========================================================
 if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['action']) && $_GET['action'] == 'read') {
     $kode = $_GET['kode_gejala'] ?? '';
     
@@ -30,19 +24,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['action']) && $_GET['acti
     exit();
 }
 
-// ==========================================================
-// B. LOGIKA POST (Tambah, Edit, Hapus)
-// ==========================================================
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $action = $_POST['action'] ?? '';
 
-    // --- 1. TAMBAH GEJALA ---
     if ($action == 'create') {
         $kode_input = trim($_POST['kode_gejala']);
         $nama = htmlspecialchars(trim($_POST['nama_gejala']));
-        
-        // PERBAIKAN LOGIKA PREFIX 'G': 
-        // Bersihkan huruf G jika user terlanjur mengetiknya, lalu paksa tambah huruf 'G' di depannya
         $kode_bersih = ltrim(strtoupper($kode_input), 'G'); 
         $kode = 'G' . $kode_bersih; 
         
@@ -56,9 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
     
-    // --- 2. EDIT/UPDATE GEJALA ---
     elseif ($action == 'update') {
-        // Untuk update, kodenya diambil dari input hidden yang sudah pasti benar formatnya
         $kode = htmlspecialchars(trim($_POST['kode_gejala']));
         $nama = htmlspecialchars(trim($_POST['nama_gejala']));
         
@@ -72,18 +57,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
     
-    // --- 3. HAPUS GEJALA ---
     elseif ($action == 'delete') {
         $kode = $_POST['kode_gejala'] ?? '';
         
         try {
             $pdo->beginTransaction();
             
-            // Hapus di tbl_aturan dulu (karena foreign key)
             $stmtAturan = $pdo->prepare("DELETE FROM tbl_aturan WHERE kode_gejala = ?");
             $stmtAturan->execute([$kode]);
             
-            // Hapus di tbl_gejala
             $stmtGejala = $pdo->prepare("DELETE FROM tbl_gejala WHERE kode_gejala = ?");
             $stmtGejala->execute([$kode]);
             
@@ -95,7 +77,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 
-    // Balik ke halaman utama gejala
     header("Location: $return_url");
     exit();
 }

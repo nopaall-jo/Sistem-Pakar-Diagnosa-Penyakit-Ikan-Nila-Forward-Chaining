@@ -10,7 +10,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['action']) && $_GET['acti
     $stmt = $pdo->prepare("SELECT id_admin, username, nama_admin FROM tbl_admin WHERE id_admin = ?");
     $stmt->execute([$id_admin]);
     
-    // PERBAIKAN: Masukkan hasilnya ke variabel $admin, BUKAN $stmt
     $admin = $stmt->fetch(PDO::FETCH_ASSOC); 
 
     if ($admin) {

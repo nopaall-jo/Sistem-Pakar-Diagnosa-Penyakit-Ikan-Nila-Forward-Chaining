@@ -44,7 +44,7 @@ $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8',
 // Set dokumen meta data
 $pdf->SetCreator(PDF_CREATOR);
 $pdf->SetAuthor('Sistem Pakar Ikan Nila');
-$pdf->SetTitle('Laporan Hasil Konsultasi - ' . ($diagnosa['nama_lengkap'] ?? 'Guest'));
+$pdf->SetTitle('Laporan Hasil Diagnosa - ' . ($diagnosa['kode_sampel'] ?? 'Sampel'));
 $pdf->SetSubject('Hasil Diagnosa Penyakit Ikan Nila');
 
 // Set margin
@@ -87,7 +87,7 @@ $pdf->writeHTML($kop, true, false, true, false, '');
 
 // Judul laporan
 $pdf->SetFont('times', 'B', 14);
-$pdf->Cell(0, 8, 'HASIL DIAGNOSA (KONSULTASI)', 0, 1, 'C');
+$pdf->Cell(0, 8, 'LAPORAN HASIL DIAGNOSA PENYAKIT IKAN NILA', 0, 1, 'C');
 $pdf->SetFont('times', '', 10);
 $pdf->Cell(0, 5, 'Dicetak pada: ' . date('d/m/Y H:i') . ' WIB', 0, 1, 'C');
 $pdf->Ln(8);
@@ -98,7 +98,7 @@ $pdf->Ln(8);
 $pdf->SetFont('times', 'B', 12);
 $pdf->SetTextColor(255, 255, 255);
 $pdf->SetFillColor(40, 167, 69); // Warna header hijau
-$pdf->Cell(0, 8, ' A. INFORMASI PENGGUNA & HASIL', 0, 1, 'L', true);
+$pdf->Cell(0, 8, ' A. INFORMASI DIAGNOSA & HASIL', 0, 1, 'L', true);
 $pdf->SetTextColor(0, 0, 0);
 $pdf->SetFont('times', '', 11);
 
@@ -107,7 +107,7 @@ $kecocokan = isset($diagnosa['confidence']) ? round(($diagnosa['confidence'] * 1
 
 $infoDiagnosa = '<table border="1" cellpadding="6">
     <tr>
-        <td width="30%" style="background-color:#f8f9fa;"><strong>ID Konsultasi</strong></td>
+        <td width="30%" style="background-color:#f8f9fa;"><strong>ID Diagnosa</strong></td>
         <td width="70%">#DIAG-' . str_pad($diagnosa['id_diagnosa'], 4, '0', STR_PAD_LEFT) . '</td>
     </tr>
     <tr>
@@ -115,8 +115,8 @@ $infoDiagnosa = '<table border="1" cellpadding="6">
         <td>' . date('d F Y - H:i', strtotime($diagnosa['tanggal_diagnosa'])) . ' WIB</td>
     </tr>
     <tr>
-        <td style="background-color:#f8f9fa;"><strong>Nama Pengguna</strong></td>
-        <td>' . htmlspecialchars($diagnosa['nama_pembudidaya'] ?? $diagnosa['nama'] ?? 'Pembudidaya') . '</td>
+        <td style="background-color:#f8f9fa;"><strong>Kode Sampel</strong></td>
+        <td>' . htmlspecialchars($diagnosa['kode_sampel'] ?? '-') . '</td>
     </tr>
     <tr>
         <td style="background-color:#e2efd9;"><strong>Hasil Diagnosa</strong></td>
@@ -162,23 +162,19 @@ if (!empty($diagnosa['kode_penyakit'])) {
     $pdf->Cell(0, 8, ' C. KETERANGAN & SOLUSI PENANGANAN', 0, 1, 'L', true);
     $pdf->SetTextColor(0, 0, 0);
     $pdf->SetFont('times', '', 11);
-    
-    $penyakitHTML = '
-    <div style="text-align: justify; line-height: 1.5;">
+    $penyakitHTML = "
+    <div style='text-align: justify; line-height: 1.5;'>
         <br>
-        <strong>1. Nama Ilmiah / Patogen:</strong><br>
-        <i>' . htmlspecialchars($diagnosa['nama_latin'] ?? '-') . '</i><br><br>
+        <strong>1. Deskripsi Penyakit:</strong><br>
+        " . nl2br(htmlspecialchars($diagnosa['deskripsi'] ?? 'Deskripsi tidak tersedia.')) . "<br><br>
         
-        <strong>2. Deskripsi Penyakit:</strong><br>
-        ' . nl2br(htmlspecialchars($diagnosa['deskripsi'] ?? 'Deskripsi tidak tersedia.')) . '<br><br>
+        <strong>2. Tindakan Pengobatan (Solusi):</strong><br>
+        " . nl2br(htmlspecialchars($diagnosa['solusi'] ?? 'Solusi tidak tersedia.')) . "<br><br>
         
-        <strong>3. Tindakan Pengobatan (Solusi):</strong><br>
-        ' . nl2br(htmlspecialchars($diagnosa['solusi'] ?? 'Solusi tidak tersedia.')) . '<br><br>
-        
-        <strong>4. Langkah Pencegahan:</strong><br>
-        ' . nl2br(htmlspecialchars($diagnosa['pencegahan'] ?? 'Data pencegahan tidak tersedia.')) . '
-    </div>';
-    
+        <strong>3. Langkah Pencegahan:</strong><br>
+        " . nl2br(htmlspecialchars($diagnosa['pencegahan'] ?? 'Data pencegahan tidak tersedia.')) . "
+    </div>";
+
     $pdf->writeHTML($penyakitHTML, true, false, false, false, '');
 }
 
@@ -187,7 +183,7 @@ if (!empty($diagnosa['kode_penyakit'])) {
 // ==========================================
 $pdf->Ln(15);
 $pdf->SetFont('times', '', 11);
-$pdf->Cell(0, 5, 'Bojong Gede, ' . date('d F Y'), 0, 1, 'R');
+$pdf->Cell(0, 5, getTanggalTtdIndo(), 0, 1, 'R');
 $pdf->Cell(0, 5, 'Pakar / Admin Sistem', 0, 1, 'R');
 $pdf->Ln(20);
 $pdf->Cell(0, 5, '(__________________________)', 0, 1, 'R');
@@ -200,4 +196,4 @@ $pdf->SetFont('times', 'I', 9);
 $pdf->Cell(0, 10, 'Dicetak oleh Sistem Pakar Diagnosis Penyakit Ikan Nila - Halaman ' . $pdf->getAliasNumPage() . '/' . $pdf->getAliasNbPages(), 0, false, 'C', 0, '', 0, false, 'T', 'M');
 
 // Output PDF ke browser
-$pdf->Output('Laporan_Konsultasi_IkanNila_' . str_pad($diagnosa['id_diagnosa'], 4, '0', STR_PAD_LEFT) . '.pdf', 'I');
+$pdf->Output('Laporan_Diagnosa_' . ($diagnosa['kode_sampel'] ?? str_pad($diagnosa['id_diagnosa'], 4, '0', STR_PAD_LEFT)) . '.pdf', 'I');

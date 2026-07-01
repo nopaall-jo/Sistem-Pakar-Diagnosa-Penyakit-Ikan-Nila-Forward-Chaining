@@ -234,7 +234,7 @@ if ($format === 'pdf') {
     
     // Tanda tangan PDF
     $pdf->Ln(10);
-    $pdf->Cell(0, 5, 'Bojong Gede, ' . date('d F Y'), 0, 1, 'R');
+    $pdf->Cell(0, 5, getTanggalTtdIndo(), 0, 1, 'R');
     $pdf->Cell(0, 5, 'Pakar / Admin Sistem', 0, 1, 'R');
     $pdf->Ln(20);
     $pdf->Cell(0, 5, '(__________________________)', 0, 1, 'R');
@@ -320,7 +320,7 @@ if ($format === 'pdf') {
     $sheet->getStyle('A9:E' . ($row - 1))->applyFromArray($dataStyle);
     
     $sheet->mergeCells('A'.($row+2).':E'.($row+2));
-    $sheet->setCellValue('A'.($row+2), 'Bojong Gede, ' . date('d F Y'));
+    $sheet->setCellValue('A'.($row+2), getTanggalTtdIndo());
     $sheet->getStyle('A'.($row+2))->getAlignment()->setHorizontal('right');
     
     $sheet->mergeCells('A'.($row+3).':E'.($row+3));

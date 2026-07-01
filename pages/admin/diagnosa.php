@@ -12,11 +12,30 @@ if (!isset($_SESSION['id_admin'])) {
 }
 $id_admin = $_SESSION['id_admin'];
 
+// Generate kode sampel otomatis
+$stmtKode = $pdo->query("
+    SELECT kode_sampel
+    FROM tbl_diagnosa
+    WHERE kode_sampel IS NOT NULL
+    ORDER BY id_diagnosa DESC
+    LIMIT 1
+");
+
+$lastKode = $stmtKode->fetch();
+
+if ($lastKode && preg_match('/SPL-(\d+)/', $lastKode['kode_sampel'], $match)) {
+    $nomorBaru = (int)$match[1] + 1;
+} else {
+    $nomorBaru = 1;
+}
+
+$kodeSampelBaru = 'SPL-' . str_pad($nomorBaru, 3, '0', STR_PAD_LEFT);
+
 // ====================================================================
 // LOGIKA FORWARD CHAINING
 // ====================================================================
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['gejala'])) {
-    $nama_pembudidaya = htmlspecialchars($_POST['nama_pembudidaya']);
+    $kode_sampel = htmlspecialchars($_POST['kode_sampel']);
     $selected_gejala = $_POST['gejala'];
     
     // PERBAIKAN: Nama tabel diubah menjadi tbl_aturan sesuai SQL terbaru
@@ -71,8 +90,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['gejala'])) {
     $confidence_level = !empty($hasil_diagnosa) ? $hasil_diagnosa[0]['confidence'] : 0;
     
     // D. Simpan Riwayat ke tbl_diagnosa
-    $stmt = $pdo->prepare("INSERT INTO tbl_diagnosa (id_admin, nama_pembudidaya, hasil_penyakit, confidence, tanggal_diagnosa) VALUES (?, ?, ?, ?, NOW())");
-    $stmt->execute([$id_admin, $nama_pembudidaya, $hasil_penyakit, $confidence_level]);
+    $stmt = $pdo->prepare(" INSERT INTO tbl_diagnosa (id_admin, kode_sampel, hasil_penyakit, confidence, tanggal_diagnosa) VALUES (?, ?, ?, ?, NOW()) ");
+    $stmt->execute([$id_admin,$kode_sampel,$hasil_penyakit,$confidence_level]);
     $diagnosa_id = $pdo->lastInsertId();
     
     // E. Simpan ke tbl_diagnosa_detail
@@ -82,14 +101,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['gejala'])) {
     }
     
     $_SESSION['hasil_diagnosa'] = $hasil_diagnosa;
-    $_SESSION['nama_pembudidaya'] = $nama_pembudidaya;
-    
-    header("Location: hasil_diagnosa.php");
-    $_SESSION['hasil_diagnosa'] = $hasil_diagnosa;
-    $_SESSION['nama_pembudidaya'] = $nama_pembudidaya;
-    
-    $_SESSION['diagnosa_id'] = $diagnosa_id; // <--- TAMBAHKAN BARIS INI
-    
+    $_SESSION['kode_sampel'] = $kode_sampel;
+    $_SESSION['diagnosa_id'] = $diagnosa_id;
+
     header("Location: hasil_diagnosa.php");
     exit();
 }
@@ -112,9 +126,9 @@ $gejala = $stmt->fetchAll();
                 <form method="post" action="">
                     
                     <div class="mb-5 bg-light p-4 rounded-3 border">
-                        <label for="nama_pembudidaya" class="form-label fw-bold text-dark"><i class="bi bi-person-badge me-2 text-primary"></i>Nama Pembudidaya / Lokasi Kolam</label>
-                        <input type="text" class="form-control form-control-lg border-primary-subtle" id="nama_pembudidaya" name="nama_pembudidaya" placeholder="Contoh: Pak Supri - Tambak Nila Blok A" required>
-                        <div class="form-text mt-2"><i class="bi bi-info-circle me-1"></i>Data ini akan disimpan ke dalam riwayat sistem untuk pelaporan.</div>
+                        <label for="kode_sampel" class="form-label fw-bold text-dark"> <i class="bi bi-person-badge me-2 text-primary"></i>Kode Sampel </label>
+                        <input type="text" class="form-control" name="kode_sampel" value="<?= $kodeSampelBaru ?>" readonly>
+                        <div class="form-text mt-2"><i class="bi bi-info-circle me-1"></i>Data ini akan disimpan ke dalam riwayat sistem untuk pelaporan..</div>
                     </div>
 
                     <div class="mb-4">

@@ -95,10 +95,9 @@ if ($format === 'pdf') {
     // PERBAIKAN 1: LEBAR KOLOM DINAMIS (TOTAL 100%)
     // ==========================================
     if ($jenis_laporan === 'lengkap') {
-        $w_no = "5%"; $w_kode = "15%"; $w_nama = "25%"; $w_latin = "25%"; $w_desc = "30%";
+        $w_no = "5%"; $w_kode = "15%"; $w_nama = "40%"; $w_desc = "40%";
     } else {
-        // Jika standar (tanpa deskripsi), sisa 30% dibagi rata ke kolom Nama
-        $w_no = "5%"; $w_kode = "15%"; $w_nama = "40%"; $w_latin = "40%";
+        $w_no = "10%"; $w_kode = "20%"; $w_nama = "70%";
     }
 
     // Buat tabel PDF (Warna hijau muda e2efd9)
@@ -107,8 +106,7 @@ if ($format === 'pdf') {
             <tr style="background-color:#e2efd9; font-weight:bold; text-align:center;">
                 <th width="'.$w_no.'">No</th>
                 <th width="'.$w_kode.'">Kode</th>
-                <th width="'.$w_nama.'">Nama Penyakit</th>
-                <th width="'.$w_latin.'">Nama Latin</th>';
+                <th width="'.$w_nama.'">Nama Penyakit</th>';
     
     if ($jenis_laporan === 'lengkap') {
         $html .= '<th width="'.$w_desc.'">Deskripsi</th>';
@@ -123,8 +121,7 @@ if ($format === 'pdf') {
             $html .= '<tr>
                 <td width="'.$w_no.'" align="center">'.($key+1).'</td>
                 <td width="'.$w_kode.'" align="center">'.htmlspecialchars($p['kode_penyakit']).'</td>
-                <td width="'.$w_nama.'">'.htmlspecialchars($p['nama_penyakit']).'</td>
-                <td width="'.$w_latin.'">'.htmlspecialchars($p['nama_latin'] ?? '-').'</td>';
+                <td width="'.$w_nama.'">'.htmlspecialchars($p['nama_penyakit']).'</td>';
             
             if ($jenis_laporan === 'lengkap') {
                 $html .= '<td width="'.$w_desc.'">'.nl2br(htmlspecialchars($p['deskripsi'] ?? '-')).'</td>';
@@ -133,7 +130,7 @@ if ($format === 'pdf') {
             $html .= '</tr>';
         }
     } else {
-        $colspan = ($jenis_laporan === 'lengkap') ? 5 : 4;
+        $colspan = ($jenis_laporan === 'lengkap') ? 4 : 3;
         $html .= '<tr><td colspan="'.$colspan.'" align="center">Tidak ada data penyakit.</td></tr>';
     }
     
@@ -144,7 +141,7 @@ if ($format === 'pdf') {
     
     // Tanda tangan (Disesuaikan dengan lokasi skripsi)
     $pdf->Ln(10);
-    $pdf->Cell(0, 5, 'Bojong Gede, ' . date('d F Y'), 0, 1, 'R');
+    $pdf->Cell(0, 5, getTanggalTtdIndo(), 0, 1, 'R');
     $pdf->Cell(0, 5, 'Pakar / Admin Sistem', 0, 1, 'R');
     $pdf->Ln(20);
     $pdf->Cell(0, 5, '(__________________________)', 0, 1, 'R');
@@ -160,7 +157,7 @@ if ($format === 'pdf') {
     $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
     $sheet = $spreadsheet->getActiveSheet();
     
-    $lastCol = ($jenis_laporan === 'lengkap') ? 'E' : 'D';
+    $lastCol = ($jenis_laporan === 'lengkap') ? 'D' : 'C';
 
     // ==========================================
     // KOP SURAT EXCEL & JUDUL
@@ -199,10 +196,9 @@ if ($format === 'pdf') {
     $sheet->setCellValue('A9', 'No');
     $sheet->setCellValue('B9', 'Kode Penyakit');
     $sheet->setCellValue('C9', 'Nama Penyakit');
-    $sheet->setCellValue('D9', 'Nama Latin');
     
     if ($jenis_laporan === 'lengkap') {
-        $sheet->setCellValue('E9', 'Deskripsi');
+        $sheet->setCellValue('D9', 'Deskripsi');
     }
     
     // Style header (Warna hijau muda e2efd9)
@@ -223,10 +219,9 @@ if ($format === 'pdf') {
         $sheet->setCellValue('A'.$row, $key+1);
         $sheet->setCellValue('B'.$row, $p['kode_penyakit']);
         $sheet->setCellValue('C'.$row, $p['nama_penyakit']);
-        $sheet->setCellValue('D'.$row, $p['nama_latin'] ?? '-');
         
         if ($jenis_laporan === 'lengkap') {
-            $sheet->setCellValue('E'.$row, $p['deskripsi'] ?? '-');
+            $sheet->setCellValue('D'.$row, $p['deskripsi'] ?? '-');
         }
         
         // Tengah-kan kolom No dan Kode Penyakit
@@ -254,7 +249,7 @@ if ($format === 'pdf') {
     // TANDA TANGAN EXCEL (Bojong Gede)
     // ==========================================
     $sheet->mergeCells('A'.($row+2).':' . $lastCol . ($row+2));
-    $sheet->setCellValue('A'.($row+2), 'Bojong Gede, ' . date('d F Y'));
+    $sheet->setCellValue('A'.($row+2), getTanggalTtdIndo());
     $sheet->getStyle('A'.($row+2))->getAlignment()->setHorizontal('right');
     
     $sheet->mergeCells('A'.($row+3).':' . $lastCol . ($row+3));

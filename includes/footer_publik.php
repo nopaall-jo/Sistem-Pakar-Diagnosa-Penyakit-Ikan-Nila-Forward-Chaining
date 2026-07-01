@@ -1,6 +1,4 @@
-</main> <!-- Penutup Konten Utama -->
-
-<!-- Footer Publik -->
+</main> 
 <footer class="bg-white py-4 border-top mt-auto">
     <div class="container text-center">
         <span class="text-muted small">
@@ -14,24 +12,28 @@
 <!-- Scripts -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<!-- Script Notifikasi Toastr -->
 <script>
 $(document).ready(function() {
-    // Setting posisi Toastr biar muncul di tengah atas untuk peternak
-    toastr.options = {
-        "positionClass": "toast-top-center",
-        "timeOut": "3000"
-    };
-
     <?php if (isset($_SESSION['success'])): ?>
-        toastr.success('<?= $_SESSION['success'] ?>');
+        Swal.fire({
+            title: 'Berhasil!',
+            html: '<?= $_SESSION['success'] ?>',
+            icon: 'success',
+            timer: 3000,
+            showConfirmButton: false
+        });
         <?php unset($_SESSION['success']); ?>
     <?php endif; ?>
 
     <?php if (isset($_SESSION['error'])): ?>
-        toastr.error('<?= $_SESSION['error'] ?>');
+        Swal.fire({
+            title: 'Gagal!',
+            html: '<?= $_SESSION['error'] ?>',
+            icon: 'error',
+            confirmButtonColor: '#002d27'
+        });
         <?php unset($_SESSION['error']); ?>
     <?php endif; ?>
 });

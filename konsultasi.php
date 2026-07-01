@@ -1,16 +1,28 @@
 <?php
-// Include koneksi database
 require_once 'config/database.php'; 
 
-// Ambil data gejala dari database menggunakan PDO
 $stmt = $pdo->query("SELECT * FROM tbl_gejala ORDER BY kode_gejala ASC");
 $gejala_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Panggil Header Publik
+// Generate kode sampel otomatis untuk publik
+$stmtKode = $pdo->query("
+    SELECT kode_sampel
+    FROM tbl_diagnosa
+    WHERE kode_sampel IS NOT NULL
+    ORDER BY id_diagnosa DESC
+    LIMIT 1
+");
+$lastKode = $stmtKode->fetch();
+if ($lastKode && preg_match('/SPL-(\d+)/', $lastKode['kode_sampel'], $match)) {
+    $nomorBaru = (int)$match[1] + 1;
+} else {
+    $nomorBaru = 1;
+}
+$kodeSampelBaru = 'SPL-' . str_pad($nomorBaru, 3, '0', STR_PAD_LEFT);
+
 include 'includes/header_publik.php';
 ?>
 
-<!-- Style khusus halaman konsultasi -->
 <style>
     .gejala-card { transition: transform 0.2s; }
     .gejala-card:hover { transform: scale(1.02); border-color: #0dbb94; background-color: #f8fffb; }
@@ -28,9 +40,10 @@ include 'includes/header_publik.php';
                 <div class="card-body p-4">
                     <form action="process/diagnosa_publik_process.php" method="POST">
                         
-                        <div class="mb-4">
-                            <label class="form-label fw-bold text-secondary">Nama Peternak / Pemilik Kolam:</label>
-                            <input type="text" class="form-control form-control-lg" name="nama_peternak" placeholder="Masukkan nama Anda..." required>
+                        <div class="mb-4 bg-light p-3 rounded-3 border">
+                            <label for="kode_sampel" class="form-label fw-bold text-secondary"><i class="fas fa-barcode me-2 text-primary"></i>Kode Sampel (Otomatis)</label>
+                            <input type="text" class="form-control fw-bold text-dark" name="kode_sampel" value="<?= $kodeSampelBaru ?>" readonly style="background-color: #e9ecef; cursor: not-allowed;">
+                            <div class="form-text mt-1"><i class="fas fa-info-circle me-1"></i>Kode identifikasi unik untuk melacak sampel diagnosa Anda.</div>
                         </div>
 
                         <div class="mb-4">

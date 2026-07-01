@@ -1,26 +1,38 @@
 <?php
+require_once '../../config/database.php';
 require_once '../../includes/header.php';
 
+$user_id = $_SESSION['id_admin'];
+$stmt = $pdo->prepare("SELECT * FROM tbl_admin WHERE id_admin = ? ");
+$stmt->execute([$user_id]);
+$user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if (!$user) {
+die('Data admin tidak ditemukan');
+}
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $nama_lengkap = $_POST['nama_lengkap'] ?? '';
-    $email = $_POST['email'] ?? '';
-    $password = $_POST['password'] ?? '';
-    
+
+    $nama_admin = trim($_POST['nama_admin'] ?? '');
+    $password = trim($_POST['password'] ?? '');
+
     try {
         if (!empty($password)) {
+
             $password_hash = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare("UPDATE users SET nama_lengkap = ?, email = ?, password = ? WHERE id = ?");
-            $stmt->execute([$nama_lengkap, $email, $password_hash, $user_id]);
+            $stmt = $pdo->prepare("UPDATE tbl_admin SET nama_admin = ?, password = ? WHERE id_admin = ?");
+            $stmt->execute([$nama_admin, $password_hash, $user_id]);
         } else {
-            $stmt = $pdo->prepare("UPDATE users SET nama_lengkap = ?, email = ? WHERE id = ?");
-            $stmt->execute([$nama_lengkap, $email, $user_id]);
+
+            $stmt = $pdo->prepare("UPDATE tbl_admin SET nama_admin = ? WHERE id_admin = ?");
+            $stmt->execute([$nama_admin, $user_id]);
         }
-        
-        $_SESSION['success'] = 'Profile berhasil diperbarui';
-        header("Location: " . $base_url . "pages/user/profile.php");
+
+        $_SESSION['success'] = 'Profil berhasil diperbarui';
+        header("Location: profile.php");
         exit();
     } catch (PDOException $e) {
-        $_SESSION['error'] = 'Gagal memperbarui profile: ' . $e->getMessage();
+        $_SESSION['error'] = 'Gagal memperbarui profil: ' . $e->getMessage();
     }
 }
 ?>
@@ -39,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </div>
                     <div class="mb-3">
                         <label for="nama_lengkap" class="form-label">Nama Lengkap</label>
-                        <input type="text" class="form-control" id="nama_lengkap" name="nama_lengkap" value="<?= htmlspecialchars($user['nama_lengkap']) ?>" required>
+                        <input type="text" class="form-control" id="nama_lengkap" name="nama_admin" value="<?= htmlspecialchars($user['nama_admin']) ?>" required>
                     </div>
                     <div class="mb-3">
                         <label for="email" class="form-label">Email</label>
