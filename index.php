@@ -51,19 +51,19 @@ if (isset($_SESSION['id_admin'])) {
                     <li class="nav-item"><a class="nav-link text-white" href="#flow">Cara Kerja</a></li>
                     <li class="nav-item ms-lg-3 my-2 my-lg-0">
                         <a href="konsultasi.php" class="btn btn-warning px-4 fw-bold rounded-pill text-dark">
-                            <i class="bi bi-play-circle me-1"></i> Mulai Diagnosa
+                            <i class="bi bi-heart-pulse me-1"></i> Cek Kesehatan Ikan
                         </a>
                     </li>
                     <li class="nav-item ms-lg-2">
                         <a href="pages/auth/login.php" class="btn btn-outline-light px-4 rounded-pill">
-                            <i class="bi bi-person-fill"></i> Admin
+                            <i class="bi bi-shield-lock"></i> Login Pakar
                         </a>
                     </li>
                 </ul>
             </div>
         </div>
     </nav>
-
+ 
     <!-- Hero Section -->
     <header class="hero-bg text-center text-lg-start">
         <div class="container">
@@ -76,7 +76,7 @@ if (isset($_SESSION['id_admin'])) {
                     </p>
                     <div class="d-flex flex-wrap justify-content-center justify-content-lg-start gap-3">
                         <a href="konsultasi.php" class="btn btn-warning btn-lg px-4 py-3 fw-bold text-dark rounded-pill shadow">
-                            <i class="bi bi-activity"></i> Mulai Konsultasi
+                            <i class="bi bi-heart-pulse"></i> Cek Kesehatan Sekarang
                         </a>
                         <a href="#about" class="btn btn-outline-light btn-lg px-4 py-3 rounded-pill">
                             Pelajari Sistem

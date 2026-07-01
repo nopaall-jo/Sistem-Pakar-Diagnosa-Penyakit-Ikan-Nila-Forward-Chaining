@@ -66,14 +66,14 @@ if (session_status() === PHP_SESSION_NONE) {
 
                     <li class="nav-item">
                         <a class="nav-link active fw-semibold" href="<?= $base_url ?>konsultasi.php">
-                            <i class="fas fa-stethoscope me-1"></i> Konsultasi
+                            <i class="fas fa-heartbeat me-1"></i> Cek Kesehatan
                         </a>
                     </li>
 
                     <li class="nav-item ms-lg-3 mt-2 mt-lg-0">
                         <a href="<?= $base_url ?>pages/auth/login.php"
                             class="btn btn-outline-light btn-sm rounded-pill px-3">
-                            <i class="fas fa-sign-in-alt me-1"></i> Login Pakar
+                            <i class="fas fa-user-shield me-1"></i> Login Pakar
                         </a>
                     </li>
 
