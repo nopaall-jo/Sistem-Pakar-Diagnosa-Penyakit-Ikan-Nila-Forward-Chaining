@@ -112,7 +112,7 @@ Halaman pengelolaan data administrator.
 
 Halaman cetak laporan data penyakit.
 
-![Cetak Penyakit](assets/screenshots/16-ctk penyakit.png)
+![Cetak Penyakit](assets/screenshots/16-ctk-penyakit.png)
 
 ---
 
@@ -120,7 +120,7 @@ Halaman cetak laporan data penyakit.
 
 Halaman cetak laporan data gejala.
 
-![Cetak Gejala](assets/screenshots/17-ctk gejala.png)
+![Cetak Gejala](assets/screenshots/17-ctk-gejala.png)
 
 ---
 
@@ -128,7 +128,7 @@ Halaman cetak laporan data gejala.
 
 Halaman cetak laporan data aturan.
 
-![Cetak Aturan](assets/screenshots/18-ctk aturan.png)
+![Cetak Aturan](assets/screenshots/18-ctk-aturan.png)
 
 ---
 
@@ -136,7 +136,7 @@ Halaman cetak laporan data aturan.
 
 Halaman cetak laporan data diagnosa.
 
-![Cetak Diagnosa](assets/screenshots/19-ctk diagnosa.png)
+![Cetak Diagnosa](assets/screenshots/19-ctk-diagnosa.png)
 
 ---
 
@@ -169,4 +169,4 @@ Sistem menampilkan hasil konsultasi berdasarkan gejala yang dipilih.
 
 Halaman cetak laporan riwayat diagnosa.
 
-![Cetak Riwayat](assets/screenshots/20-ctk riwayat.png)
+![Cetak Riwayat](assets/screenshots/20-ctk-riwayat.png)
