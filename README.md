@@ -12,11 +12,11 @@ Sistem pakar berbasis web yang dikembangkan menggunakan **PHP Native** untuk mem
 
 # 📸 Tampilan Sistem
 
-### 1. Halaman Utama
+### 1. Halaman Index
 
-Halaman utama website sebelum pengguna melakukan konsultasi.
+Halaman utama website sistem pakar.
 
-![Halaman Utama](assets/screenshots/index.png)
+![Halaman Index](assets/screenshots/01-index.png)
 
 ---
 
@@ -24,7 +24,7 @@ Halaman utama website sebelum pengguna melakukan konsultasi.
 
 Pengguna memilih gejala yang dialami ikan nila.
 
-![Konsultasi](assets/screenshots/konsultasi.png)
+![Konsultasi](assets/screenshots/02-konsultasi.png)
 
 ---
 
@@ -32,92 +32,140 @@ Pengguna memilih gejala yang dialami ikan nila.
 
 Sistem menampilkan hasil konsultasi berdasarkan gejala yang dipilih.
 
-![Hasil Konsultasi](assets/screenshots/hasilkonsultasi.png)
+![Hasil Konsultasi](assets/screenshots/03-hasilkonsultasi.png)
 
 ---
 
-### 4. Login Admin
+### 4. Halaman Register
 
-Halaman autentikasi administrator.
+Halaman pendaftaran akun pengguna.
 
-![Login](assets/img/login.png)
-
----
-
-### 5. Dashboard
-
-Dashboard administrator.
-
-![Dashboard](assets/screenshots/dashboard.png)
+![Register](assets/screenshots/04-register.png)
 
 ---
 
-### 6. Data Penyakit
+### 5. Halaman Login
+
+Halaman login untuk pengguna dan admin.
+
+![Login](assets/screenshots/05-login.png)
+
+---
+
+### 6. Halaman Dashboard
+
+Dashboard utama administrator.
+
+![Dashboard](assets/screenshots/06-dashboard.png)
+
+---
+
+### 7. Halaman Data Penyakit
 
 Halaman pengelolaan data penyakit.
 
-![Penyakit](assets/screenshots/penyakit.png)
+![Data Penyakit](assets/screenshots/07-penyakit.png)
 
 ---
 
-### 7. Data Gejala
+### 8. Halaman Data Gejala
 
 Halaman pengelolaan data gejala.
 
-![Gejala](assets/screenshots/gejala.png)
+![Data Gejala](assets/screenshots/08-gejala.png)
 
 ---
 
-### 8. Data Aturan
+### 9. Halaman Data Aturan
 
-Halaman pengelolaan aturan Forward Chaining.
+Halaman pengelolaan aturan (rule) untuk metode Forward Chaining.
 
-![Aturan](assets/screenshots/aturan.png)
-
----
-
-### 9. Diagnosa
-
-Halaman proses diagnosa.
-
-![Diagnosa](assets/screenshots/diagnosa.png)
+![Data Aturan](assets/screenshots/09-aturan.png)
 
 ---
 
-### 10. Hasil Diagnosa
+### 10. Halaman Diagnosa
 
-Menampilkan hasil diagnosa beserta solusi.
+Halaman proses diagnosa penyakit.
 
-![Hasil Diagnosa](assets/screenshots/hasildiagnosa.png)
-
----
-
-### 11. Riwayat Diagnosa
-
-Riwayat seluruh proses diagnosa.
-
-![Riwayat](assets/screenshots/riwayat.png)
+![Diagnosa](assets/screenshots/10-diagnosa.png)
 
 ---
 
-### 12. Detail Diagnosa
+### 11. Hasil Diagnosa
 
-Menampilkan informasi detail hasil diagnosa.
+Menampilkan hasil diagnosa beserta solusi penanganan.
 
-![Detail](assets/screenshots/detail.png)
-
----
-
-### 13. Cetak Laporan
-
-Halaman cetak laporan diagnosa.
-
-![Cetak](assets/screenshots/cetak.png)
+![Hasil Diagnosa](assets/screenshots/11-hasildiagnosa.png)
 
 ---
 
-### 14. Data Admin
+### 12. Riwayat Diagnosa
 
-Pengelolaan akun administrator.
+Menampilkan riwayat seluruh proses diagnosa yang telah dilakukan.
 
-![Admin](assets/img/admin.png)
+![Riwayat Diagnosa](assets/screenshots/12-riwayat.png)
+
+---
+
+### 13. Detail Diagnosa
+
+Menampilkan informasi detail dari hasil diagnosa.
+
+![Detail Diagnosa](assets/screenshots/13-detail.png)
+
+---
+
+### 14. Cetak Laporan
+
+Halaman untuk mencetak laporan diagnosa.
+
+![Cetak Laporan](assets/screenshots/14-cetak.png)
+
+---
+
+### 15. Halaman Admin
+
+Halaman pengelolaan data administrator.
+
+![Halaman Admin](assets/screenshots/15-admin.png)
+
+---
+
+### 16. Cetak Data Penyakit
+
+Halaman cetak laporan data penyakit.
+
+![Cetak Penyakit](assets/screenshots/16-ctk penyakit.png)
+
+---
+
+### 17. Cetak Data Gejala
+
+Halaman cetak laporan data gejala.
+
+![Cetak Gejala](assets/screenshots/17-ctk gejala.png)
+
+---
+
+### 18. Cetak Data Aturan
+
+Halaman cetak laporan data aturan.
+
+![Cetak Aturan](assets/screenshots/18-ctk aturan.png)
+
+---
+
+### 19. Cetak Data Diagnosa
+
+Halaman cetak laporan data diagnosa.
+
+![Cetak Diagnosa](assets/screenshots/19-ctk diagnosa.png)
+
+---
+
+### 20. Cetak Riwayat Diagnosa
+
+Halaman cetak laporan riwayat diagnosa.
+
+![Cetak Riwayat](assets/screenshots/20-ctk riwayat.png)
