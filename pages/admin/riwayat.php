@@ -5,13 +5,26 @@ if (session_status() === PHP_SESSION_NONE) {
 require_once '../../config/database.php';
 require_once '../../includes/header.php';
 
-// Ambil semua data riwayat dari tbl_diagnosa 
-// Lakukan JOIN dengan tbl_penyakit berdasarkan kode_penyakit
+// Ambil parameter filter tanggal jika ada
+$start_date = $_GET['start_date'] ?? '';
+$end_date   = $_GET['end_date'] ?? '';
+
 try {
-    $stmt = $pdo->query("SELECT d.*, p.nama_penyakit 
-                         FROM tbl_diagnosa d 
-                         LEFT JOIN tbl_penyakit p ON d.hasil_penyakit = p.kode_penyakit 
-                         ORDER BY d.tanggal_diagnosa DESC");
+    if (!empty($start_date) && !empty($end_date)) {
+        $start_date_db = date('Y-m-d', strtotime($start_date));
+        $end_date_db   = date('Y-m-d', strtotime($end_date));
+        $stmt = $pdo->prepare("SELECT d.*, p.nama_penyakit 
+                             FROM tbl_diagnosa d 
+                             LEFT JOIN tbl_penyakit p ON d.hasil_penyakit = p.kode_penyakit 
+                             WHERE DATE(d.tanggal_diagnosa) BETWEEN ? AND ?
+                             ORDER BY d.tanggal_diagnosa DESC");
+        $stmt->execute([$start_date_db, $end_date_db]);
+    } else {
+        $stmt = $pdo->query("SELECT d.*, p.nama_penyakit 
+                             FROM tbl_diagnosa d 
+                             LEFT JOIN tbl_penyakit p ON d.hasil_penyakit = p.kode_penyakit 
+                             ORDER BY d.tanggal_diagnosa DESC");
+    }
     $riwayat = $stmt->fetchAll();
 } catch (PDOException $e) {
     die("Error mengambil data riwayat: " . $e->getMessage());
@@ -37,7 +50,7 @@ try {
 <div class="card shadow mb-4">
     <div class="card-header py-3 d-flex justify-content-between align-items-center">
         <h5 class="m-0 font-weight-bold text-dark">
-            <i class="bi bi-clock-history text-primary me-2"></i>Riwayat Diagnosa Sistem Pakar
+            <i class="bi bi-clock-history text-primary me-2"></i>Riwayat Laporan Sistem Pakar Diagnosa Penyakit Ikan Nila
         </h5>
         <div>
             <button class="btn btn-sm btn-secondary" id="btnRefresh">
@@ -46,6 +59,45 @@ try {
         </div>
     </div>
     <div class="card-body p-3">
+        <!-- Form Filter Tanggal & Cetak Laporan -->
+        <div class="d-flex align-items-center gap-3 mb-3">
+            <form method="get" class="d-flex align-items-center">
+                <div class="input-group input-group-sm gap-2">
+                    <input type="date" class="form-control border-primary-subtle" name="start_date" value="<?= $start_date ?>">
+                    <span class="input-group-text bg-primary text-white border-primary">s/d</span>
+                    <input type="date" class="form-control border-primary-subtle" name="end_date" value="<?= $end_date ?>">
+                    <button type="submit" class="btn btn-primary shadow-sm">
+                        <i class="bi bi-filter"></i> Filter
+                    </button>
+                </div>
+            </form>
+            <div class="d-flex gap-2">
+                <a href="../../process/laporan_process.php?action=export_pdf&start_date=<?= $start_date ?>&end_date=<?= $end_date ?>" 
+                   class="btn btn-sm btn-outline-danger shadow-sm" target="_blank">
+                    <i class="bi bi-file-earmark-pdf"></i> Cetak Laporan PDF
+                </a>
+                <a href="../../process/laporan_process.php?action=export_excel&start_date=<?= $start_date ?>&end_date=<?= $end_date ?>" 
+                   class="btn btn-sm btn-outline-success shadow-sm">
+                    <i class="bi bi-file-earmark-excel"></i> Ekspor Excel
+                </a>
+            </div>
+        </div>
+
+        <!-- Alert Periode Tanggal -->
+        <div class="alert alert-info border-0 shadow-sm my-3 d-flex align-items-center rounded-3">
+            <i class="bi bi-info-circle-fill fs-5 me-3"></i>
+            <div>
+                <?php if (!empty($start_date) && !empty($end_date)): ?>
+                    Menampilkan laporan diagnosa periode 
+                    <span class="fw-bold"><?= date('d M Y', strtotime($start_date)) ?></span> 
+                    sampai 
+                    <span class="fw-bold"><?= date('d M Y', strtotime($end_date)) ?></span>
+                <?php else: ?>
+                    Menampilkan seluruh riwayat diagnosa sistem pakar.
+                <?php endif; ?>
+            </div>
+        </div>
+
         <div class="table-responsive">
             <table class="table table-hover table-striped table-bordered align-middle" id="dataTable" width="100%" cellspacing="0">
                 <thead class="table-light text-muted text-center">

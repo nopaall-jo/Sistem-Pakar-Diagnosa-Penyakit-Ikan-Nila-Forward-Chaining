@@ -22,6 +22,45 @@ if (!$admin) {
     header("Location: " . $base_url . "pages/auth/login.php");
     exit();
 }
+
+// Tentukan judul halaman admin secara dinamis
+$current_page = basename($_SERVER['PHP_SELF']);
+$title_page = "Panel Kontrol Administrator";
+
+switch ($current_page) {
+    case 'dashboard.php':
+        $title_page = "Dashboard Utama";
+        break;
+    case 'gejala.php':
+        $title_page = "Kelola Data Gejala";
+        break;
+    case 'penyakit.php':
+        $title_page = "Kelola Data Penyakit";
+        break;
+    case 'relasi.php':
+        $title_page = "Kelola Basis Aturan";
+        break;
+    case 'riwayat.php':
+        $title_page = "Riwayat Diagnosa";
+        break;
+    case 'detail_riwayat.php':
+    case 'diagnosa_detail.php':
+        $title_page = "Detail Riwayat Diagnosa";
+        break;
+    case 'diagnosa.php':
+    case 'hasil_diagnosa.php':
+        $title_page = "Uji Diagnosa Pakar";
+        break;
+    case 'data_admin.php':
+        $title_page = "Kelola Data Admin";
+        break;
+    case 'profile.php':
+        $title_page = "Profil Administrator";
+        break;
+    case 'laporan.php':
+        $title_page = "Laporan Diagnosa";
+        break;
+}
 ?>
 
 <!DOCTYPE html>
@@ -57,7 +96,7 @@ if (!$admin) {
 
                 <div class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100">
                     <span class="text-dark small fw-bold px-3 py-2 rounded-pill" style="background-color: var(--light); border: 1px solid var(--dark);">
-                        <i class="bi bi-calendar3 me-1" style="color: var(--primary-dark);"></i> 
+                        <i class="bi bi-calendar3 me-1" style="color: var(--primary-dark);"></i>
                         <?php
                         $hari = ['Sunday' => 'Minggu', 'Monday' => 'Senin', 'Tuesday' => 'Selasa', 'Wednesday' => 'Rabu', 'Thursday' => 'Kamis', 'Friday' => 'Jumat', 'Saturday' => 'Sabtu'];
                         $bulan = [1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
@@ -67,11 +106,11 @@ if (!$admin) {
                 </div>
 
                 <div class="position-absolute start-50 translate-middle-x text-center d-none d-md-block">
-                    <span class="fw-bolder text-dark" style="font-size: 1rem; letter-spacing: -0.5px;">
-                        Sistem Pakar Diagnosa Penyakit Ikan Nila
+                    <span class="fw-bolder text-dark" style="font-size: 1.05rem; letter-spacing: -0.3px;">
+                        <?= $title_page ?>
                     </span>
-                    <div class="small fw-bold text-muted" style="font-size: 0.75rem;">
-                        Naufal Rafif (202243501684)
+                    <div class="small fw-bold text-muted" style="font-size: 0.75rem; letter-spacing: 0.2px;">
+                        Sistem Pakar Ikan Nila Dzawil Farm
                     </div>
                 </div>
 
@@ -89,7 +128,7 @@ if (!$admin) {
                             </div>
                         </a>
 
-                        <div class="dropdown-menu shadow border border-dark rounded-3 py-2" aria-labelledby="userDropdown" style="position: absolute; top: 100%; right: 50%; transform: translateX(50%); margin-top: 3px; min-width: 220px; z-index: 1050;">
+                        <div class="dropdown-menu shadow border border-dark rounded-3 py-2" aria-labelledby="userDropdown" style="position: absolute; top: 100%; right: 50%; transform: translateX(50%); margin-top: 1px; min-width: 220px; z-index: 1050;">
                             <a class="dropdown-item py-2 fw-semibold" href="<?= $base_url ?>pages/admin/data_admin.php">
                                 <i class="bi bi-person-gear me-2 text-primary-dark"></i> Pengaturan Admin
                             </a>

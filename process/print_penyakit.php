@@ -23,6 +23,7 @@ if ($format === 'pdf') {
     
     // Buat objek PDF baru
     $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+    $pdf->setPrintHeader(false);
     
     // PERBAIKAN: Set dokumen meta data disesuaikan dengan Ikan Nila
     $pdf->SetCreator(PDF_CREATOR);
@@ -48,13 +49,13 @@ if ($format === 'pdf') {
     $pdf->AddPage();
     
     // Kop surat, Persiapkan path logo (Gunakan realpath agar TCPDF bisa membaca gambar lokal)
-    $path_logoKiri = realpath(__DIR__ . '/../assets/img/logo4.png');
+    $path_logoKiri = realpath(__DIR__ . '/../assets/img/Logo2.png');
     $path_logoKanan = realpath(__DIR__ . '/../assets/img/logo3.png');
-
+ 
     // Validasi file logo (Mencegah error 'Image not found' pada TCPDF jika file terhapus/salah folder)
-    $img_kiri = file_exists($path_logoKiri) ? '<img src="' . $path_logoKiri . '" width="75">' : '';
-    $img_kanan = file_exists($path_logoKanan) ? '<img src="' . $path_logoKanan . '" width="75">' : '';
-
+    $img_kiri = file_exists($path_logoKiri) ? '<img src="' . $path_logoKiri . '" width="85">' : '';
+    $img_kanan = file_exists($path_logoKanan) ? '<img src="' . $path_logoKanan . '" width="85">' : '';
+ 
     $kop = '
     <table border="0" cellpadding="2" cellspacing="0" width="100%">
         <tr>
@@ -63,10 +64,13 @@ if ($format === 'pdf') {
             </td>
             
             <td width="70%" align="center">
-                <h3 style="margin: 0; font-weight: bold; line-height: 1.5;">SISTEM PAKAR DIAGNOSIS PENYAKIT IKAN NILA</h3>
-                <h3 style="margin: 0; font-weight: bold; line-height: 1.5;">METODE FORWARD CHAINING</h3>
-                <p style="margin: 0; font-size: 11pt; font-weight: bold;">KECAMATAN BOJONG GEDE</p>
-                <p style="margin: 0; font-size: 10pt;">Kabupaten Bogor, Provinsi Jawa Barat</p>
+                <h2 style="margin: 0; font-weight: bold; line-height: 1.1; color: #002d27; font-size: 14pt;">DZAWIL GARDEN OFFICE FARM</h2>
+                <h4 style="margin: 0; font-weight: bold; line-height: 1.2; font-size: 11pt;">SISTEM PAKAR DIAGNOSIS PENYAKIT IKAN NILA</h4>
+                <h5 style="margin: 0; font-weight: bold; line-height: 1.2; color: #555555; font-size: 9pt;">METODE FORWARD CHAINING</h5>
+                <p style="margin: 0; font-size: 8pt; color: #444444; line-height: 1.2; margin-top: 5px;">
+                    Jl. H. Sena, Ragajaya Citayam, Kecamatan Bojonggede, Kabupaten Bogor, Jawa Barat 16920<br>
+                    Telp: 0852-1010-0139
+                </p>
             </td>
             
             <td width="15%" align="center">
@@ -74,9 +78,8 @@ if ($format === 'pdf') {
             </td>
         </tr>
     </table>
-    
-    <br>
-    <hr style="border-top: 3px solid #000; margin-top: 2px;">
+    <hr style="border-top: 2px solid #000; margin: 0; padding: 0; height: 1px;">
+    <hr style="border-top: 1px solid #000; margin: 0; padding: 0; height: 1px; margin-top: 2px;">
     <br>
     ';
     

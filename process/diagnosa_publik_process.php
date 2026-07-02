@@ -12,34 +12,52 @@ if (isset($_POST['submit_diagnosa'])) {
         exit();
     }
 
-    // Algoritma Forward Chaining
-    $penyakit = $pdo->query("SELECT kode_penyakit FROM tbl_penyakit")->fetchAll(PDO::FETCH_ASSOC);
+    // Fetch all rules from tbl_aturan
+    $stmt = $pdo->query("SELECT kode_penyakit, kode_aturan, kode_gejala FROM tbl_aturan");
+    $rules = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Group rules by disease, then by rule code
+    $disease_rules = [];
+    foreach ($rules as $r) {
+        $kp = $r['kode_penyakit'];
+        $ka = !empty($r['kode_aturan']) ? $r['kode_aturan'] : $kp;
+        $disease_rules[$kp][$ka][] = $r['kode_gejala'];
+    }
+    
+    // Hitung Confidence per penyakit berdasarkan Jaccard Index terbaik dari ruleset
     $hasil_diagnosa = [];
-
-    foreach ($penyakit as $p) {
-        $kp = $p['kode_penyakit'];
-        // Ambil daftar gejala untuk penyakit ini dari tbl_aturan
-        $stmt = $pdo->prepare("SELECT kode_gejala FROM tbl_aturan WHERE kode_penyakit = ?");
-        $stmt->execute([$kp]);
-        $gejala_aturan = $stmt->fetchAll(PDO::FETCH_COLUMN);
-        
-        $total_aturan = count($gejala_aturan);
-        if ($total_aturan > 0) {
-            // Bandingkan kecocokan fakta (input) dengan rule base (aturan)
-            $cocok = count(array_intersect($gejala_input, $gejala_aturan));
-            $persentase = ($cocok / $total_aturan) * 100;
-            if ($persentase > 0) {
-                $hasil_diagnosa[] = ['kode' => $kp, 'persentase' => round($persentase, 2)];
+    $total_input = count($gejala_input);
+    
+    foreach ($disease_rules as $kp => $ruleset) {
+        $max_jaccard = 0;
+        foreach ($ruleset as $ka => $gejala_aturan) {
+            $total_aturan = count($gejala_aturan);
+            if ($total_aturan > 0) {
+                $cocok = count(array_intersect($gejala_input, $gejala_aturan));
+                if ($cocok > 0) {
+                    $union_size = $total_input + $total_aturan - $cocok;
+                    $jaccard = $cocok / $union_size;
+                    if ($jaccard > $max_jaccard) {
+                        $max_jaccard = $jaccard;
+                    }
+                }
             }
         }
+        
+        if ($max_jaccard > 0) {
+            $hasil_diagnosa[] = [
+                'kode' => $kp, 
+                'persentase' => $max_jaccard // Disimpan dalam desimal (0 s.d 1) konsisten dengan standard DB
+            ];
+        }
     }
-
+ 
     if (empty($hasil_diagnosa)) {
         $_SESSION['error'] = "Gejala tidak cocok dengan penyakit manapun.";
         header("Location: ../konsultasi.php");
         exit();
     }
-
+ 
     // Urutkan persentase tertinggi
     usort($hasil_diagnosa, fn($a, $b) => $b['persentase'] <=> $a['persentase']);
     $final = $hasil_diagnosa[0];

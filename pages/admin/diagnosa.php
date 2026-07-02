@@ -38,46 +38,53 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['gejala'])) {
     $kode_sampel = htmlspecialchars($_POST['kode_sampel']);
     $selected_gejala = $_POST['gejala'];
     
-    // PERBAIKAN: Nama tabel diubah menjadi tbl_aturan sesuai SQL terbaru
-    $stmt = $pdo->query("SELECT r.kode_penyakit, r.kode_gejala, p.nama_penyakit 
+    // Fetch all rules from tbl_aturan
+    $stmt = $pdo->query("SELECT r.kode_penyakit, r.kode_aturan, r.kode_gejala, p.nama_penyakit 
                          FROM tbl_aturan r 
                          JOIN tbl_penyakit p ON r.kode_penyakit = p.kode_penyakit");
-    $relasi = $stmt->fetchAll();
+    $relasi = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
-    $penyakit_gejala = [];
-    
-    // A. Hitung total syarat gejala per penyakit
+    // Group rules by disease, then by rule code
+    $disease_rules = [];
     foreach ($relasi as $r) {
-        if (!isset($penyakit_gejala[$r['kode_penyakit']])) {
-            $penyakit_gejala[$r['kode_penyakit']] = [
-                'nama' => $r['nama_penyakit'],
-                'total_gejala' => 0,
-                'gejala_cocok' => 0
-            ];
-        }
-        $penyakit_gejala[$r['kode_penyakit']]['total_gejala']++;
+        $kp = $r['kode_penyakit'];
+        $ka = !empty($r['kode_aturan']) ? $r['kode_aturan'] : $kp;
+        $disease_rules[$kp]['nama'] = $r['nama_penyakit'];
+        $disease_rules[$kp]['ruleset'][$ka][] = $r['kode_gejala'];
     }
     
-    // B. Hitung gejala yang cocok
-    foreach ($selected_gejala as $gejala_kode) {
-        foreach ($relasi as $r) {
-            if ($r['kode_gejala'] == $gejala_kode) {
-                $penyakit_gejala[$r['kode_penyakit']]['gejala_cocok']++;
+    // Hitung Confidence per penyakit berdasarkan Jaccard Index terbaik dari ruleset
+    $hasil_diagnosa = [];
+    $total_input = count($selected_gejala);
+    
+    foreach ($disease_rules as $kp => $data) {
+        $max_jaccard = 0;
+        $best_gejala_cocok = 0;
+        $best_total_gejala = 0;
+        
+        foreach ($data['ruleset'] as $ka => $gejala_aturan) {
+            $total_aturan = count($gejala_aturan);
+            if ($total_aturan > 0) {
+                $cocok = count(array_intersect($selected_gejala, $gejala_aturan));
+                if ($cocok > 0) {
+                    $union_size = $total_input + $total_aturan - $cocok;
+                    $jaccard = $cocok / $union_size;
+                    if ($jaccard > $max_jaccard) {
+                        $max_jaccard = $jaccard;
+                        $best_gejala_cocok = $cocok;
+                        $best_total_gejala = $total_aturan;
+                    }
+                }
             }
         }
-    }
-    
-    // C. Hitung Confidence
-    $hasil_diagnosa = [];
-    foreach ($penyakit_gejala as $kode => $data) {
-        if ($data['gejala_cocok'] > 0) {
-            $confidence = $data['gejala_cocok'] / $data['total_gejala'];
+        
+        if ($max_jaccard > 0) {
             $hasil_diagnosa[] = [
-                'kode_penyakit' => $kode,
+                'kode_penyakit' => $kp,
                 'nama_penyakit' => $data['nama'],
-                'confidence' => $confidence,
-                'gejala_cocok' => $data['gejala_cocok'],
-                'total_gejala' => $data['total_gejala']
+                'confidence' => $max_jaccard,
+                'gejala_cocok' => $best_gejala_cocok,
+                'total_gejala' => $best_total_gejala
             ];
         }
     }

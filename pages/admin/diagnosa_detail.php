@@ -47,21 +47,20 @@ if ($is_print) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cetak Diagnosa #<?= $diagnosa_id ?></title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Arial", sans-serif; line-height: 1.5; }
-        body { padding: 30px; font-size: 12pt; color: #333; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Arial", sans-serif; line-height: 1.3; }
+        body { padding: 20px; font-size: 10.5pt; color: #333; }
         .print-container { max-width: 100%; margin: 0 auto; }
-        .print-header { text-align: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 3px solid #0dbb94; }
-        .print-header h1 { font-size: 22pt; margin-bottom: 5px; color: #0dbb94; text-transform: uppercase; }
-        .print-header p { font-size: 11pt; color: #666; }
-        .section { margin-bottom: 20px; page-break-inside: avoid; }
-        .section-title { font-size: 14pt; font-weight: bold; margin-bottom: 10px; padding-bottom: 5px; border-bottom: 2px solid #ddd; color: #333; }
-        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; background: #f9f9f9; padding: 15px; border-radius: 5px; }
+        .print-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 3px double #000; padding-bottom: 10px; margin-bottom: 15px; }
+        .print-header-text { text-align: center; flex-grow: 1; padding: 0 15px; }
+        .section { margin-bottom: 12px; page-break-inside: avoid; }
+        .section-title { font-size: 12pt; font-weight: bold; margin-bottom: 8px; padding-bottom: 3px; border-bottom: 2px solid #ddd; color: #333; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; background: #f9f9f9; padding: 10px; border: 1px solid #eee; border-radius: 5px; }
         .info-item strong { display: inline-block; min-width: 130px; color: #555; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; page-break-inside: avoid; }
-        th, td { padding: 10px; border: 1px solid #ddd; text-align: left; font-size: 11pt; }
-        th { background-color: #f4fbf9; color: #0dbb94; font-weight: bold; }
-        .text-content { white-space: pre-line; margin-top: 5px; padding: 10px; border-left: 3px solid #0dbb94; background-color: #fafafa; }
-        .footer { text-align: center; margin-top: 30px; padding-top: 10px; border-top: 1px solid #ddd; font-size: 10pt; color: #888; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 12px; page-break-inside: avoid; }
+        th, td { padding: 6px 10px; border: 1px solid #ddd; text-align: left; font-size: 10pt; }
+        th { background-color: #f4fbf9; color: #002d27; font-weight: bold; }
+        .text-content { white-space: pre-line; margin-top: 3px; padding: 6px 10px; border-left: 3px solid #002d27; background-color: #fafafa; font-size: 10pt; }
+        .footer { text-align: center; margin-top: 20px; padding-top: 8px; border-top: 1px solid #ddd; font-size: 9pt; color: #666; }
         @page { size: A4; margin: 15mm 15mm; }
         @media print { body { padding: 0; } .no-print { display: none !important; } }
     </style>
@@ -69,8 +68,17 @@ if ($is_print) {
 <body>
     <div class="print-container">
         <div class="print-header">
-            <h1>Sistem Pakar Ikan Nila</h1>
-            <p>Laporan Hasil Diagnosa Penyakit Berdasarkan Kode Sampel Ikan Nila</p>
+            <img src="../../assets/img/Logo2.png" alt="Logo Kiri" style="height: 65px; object-fit: contain;">
+            <div class="print-header-text">
+                <h2 style="margin: 0; font-weight: bold; font-size: 14pt; color: #002d27; line-height: 1.1;">DZAWIL GARDEN OFFICE FARM</h2>
+                <h4 style="margin: 0; font-weight: bold; font-size: 10pt; line-height: 1.2;">SISTEM PAKAR DIAGNOSIS PENYAKIT IKAN NILA</h4>
+                <h5 style="margin: 0; font-weight: bold; font-size: 8.5pt; color: #555555; line-height: 1.2;">METODE FORWARD CHAINING</h5>
+                <p style="margin: 0; font-size: 8pt; color: #444444; line-height: 1.2; margin-top: 4px;">
+                    Jl. H. Sena, Ragajaya Citayam, Kecamatan Bojonggede, Kabupaten Bogor, Jawa Barat 16920<br>
+                    Telp: 0852-1010-0139
+                </p>
+            </div>
+            <img src="../../assets/img/logo3.png" alt="Logo Kanan" style="height: 65px; object-fit: contain;">
         </div>
         
         <div class="section">
@@ -93,7 +101,7 @@ if ($is_print) {
             </div>
 
         <div class="section">
-            <h3 class="section-title">Kesimpulan Sistem: <?= htmlspecialchars($diagnosa['nama_penyakit'] ?? 'Tidak Dikenali') ?></h3>
+            <h3 class="section-title">Kesimpulan Hasil Diagnosa: <?= htmlspecialchars($diagnosa['nama_penyakit'] ?? 'Tidak Dikenali') ?></h3>
         </div>
         
         <div class="section">
@@ -120,19 +128,17 @@ if ($is_print) {
         <div class="section">
             <h3 class="section-title">Rekomendasi Medis & Penanganan</h3>
             
-            <div style="margin-bottom: 15px;">
-            
-            <div style="margin-bottom: 15px;">
+            <div style="margin-bottom: 10px;">
                 <strong>Deskripsi Penyakit:</strong>
                 <div class="text-content"><?= htmlspecialchars($diagnosa['deskripsi'] ?? '-') ?></div>
             </div>
             
-            <div style="margin-bottom: 15px;">
+            <div style="margin-bottom: 10px;">
                 <strong>Langkah Pengobatan:</strong>
                 <div class="text-content" style="border-left-color: #198754;"><?= htmlspecialchars($diagnosa['solusi'] ?? '-') ?></div>
             </div>
             
-            <div style="margin-bottom: 15px;">
+            <div style="margin-bottom: 10px;">
                 <strong>Pencegahan Lanjutan:</strong>
                 <div class="text-content" style="border-left-color: #0dcaf0;"><?= htmlspecialchars($diagnosa['pencegahan'] ?? '-') ?></div>
             </div>
@@ -171,15 +177,10 @@ require_once '../../includes/header.php';
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
             <!-- Grup Tombol Cetak -->
             <div class="d-flex gap-2">
-                <a href="?id=<?= $_GET['id'] ?>&print=true" 
-                class="btn btn-secondary btn-sm">
-                    <i class="bi bi-printer me-1"></i> Cetak Biasa
-                </a>
-
                 <a href="../../process/print_riwayat.php?id=<?= $_GET['id'] ?>&format=pdf" 
                 target="_blank" 
                 class="btn btn-success btn-sm">
-                    <i class="bi bi-file-earmark-pdf me-1"></i> Cetak PDF Resmi
+                    <i class="bi bi-printer-fill me-1"></i> Cetak Hasil PDF
                 </a>
             </div>
             <!-- Tombol Kembali -->

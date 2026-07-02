@@ -63,7 +63,7 @@ if (isset($_SESSION['id_admin'])) {
             </div>
         </div>
     </nav>
- 
+
     <!-- Hero Section -->
     <header class="hero-bg text-center text-lg-start">
         <div class="container">

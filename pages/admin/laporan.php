@@ -6,165 +6,160 @@ if (session_status() === PHP_SESSION_NONE) {
 require_once '../../config/database.php';
 require_once '../../includes/header.php';
 
-// 1️. Ambil dari filter atau default awal & akhir bulan
-$start_date = $_GET['start_date'] ?? date('Y-m-01');
-$end_date   = $_GET['end_date'] ?? date('Y-m-t');
-
-// 2️. Normalisasi format tanggal (letaknya DI SINI)
-$start_date = date('Y-m-d', strtotime($start_date));
-$end_date   = date('Y-m-d', strtotime($end_date));
-
 try {
-
-    $query = "SELECT d.*, p.nama_penyakit
-              FROM tbl_diagnosa d
-              LEFT JOIN tbl_penyakit p 
-                     ON d.hasil_penyakit = p.kode_penyakit
-              WHERE DATE(d.tanggal_diagnosa) 
-                    BETWEEN :start_date AND :end_date
-              ORDER BY d.tanggal_diagnosa DESC";
-
-    $stmt = $pdo->prepare($query);
-    $stmt->execute([
-        ':start_date' => $start_date,
-        ':end_date'   => $end_date
-    ]);
-
-    $laporan = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
+    // Ambil statistik data untuk mempercantik Pusat Laporan
+    $total_gejala = $pdo->query("SELECT COUNT(*) FROM tbl_gejala")->fetchColumn();
+    $total_penyakit = $pdo->query("SELECT COUNT(*) FROM tbl_penyakit")->fetchColumn();
+    $total_aturan = $pdo->query("SELECT COUNT(*) FROM tbl_aturan")->fetchColumn();
+    $total_diagnosa = $pdo->query("SELECT COUNT(*) FROM tbl_diagnosa")->fetchColumn();
 } catch (PDOException $e) {
-    die("Query bermasalah: " . $e->getMessage());
+    die("Error mengambil data statistik: " . $e->getMessage());
 }
 ?>
-<div class="card shadow-sm border-0 mb-4 rounded-4">
-    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom-0">
-        <h5 class="m-0 font-weight-bold text-dark">
-            <i class="bi bi-file-earmark-bar-graph text-primary me-2"></i>Laporan Diagnosa Penyakit Ikan Nila
-        </h5>
-        <div class="d-flex align-items-center gap-3">
-            <form method="get" class="d-flex align-items-center">
-                <div class="input-group input-group-sm gap-2">
-                    <input type="date" class="form-control border-primary-subtle" name="start_date" value="<?= $start_date ?>">
-                    <span class="input-group-text bg-primary text-white border-primary">s/d</span>
-                    <input type="date" class="form-control border-primary-subtle" name="end_date" value="<?= $end_date ?>">
-                    <button type="submit" class="btn btn-primary shadow-sm">
-                        <i class="bi bi-filter"></i> Filter
-                    </button>
-                </div>
-            </form>
 
-            <div class="d-flex gap-2 shadow-sm">
-                <a href="../../process/laporan_process.php?action=export_pdf&start_date=<?= $start_date ?>&end_date=<?= $end_date ?>" 
-                   class="btn btn-sm btn-outline-danger" target="_blank">
-                    <i class="bi bi-file-earmark-pdf"></i> PDF
-                </a>
-                <a href="../../process/laporan_process.php?action=export_excel&start_date=<?= $start_date ?>&end_date=<?= $end_date ?>" 
-                   class="btn btn-sm btn-outline-success">
-                    <i class="bi bi-file-earmark-excel"></i> Excel
-                </a>
-            </div>
-        </div>
+<!-- Header Section -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="h3 mb-0 text-gray-800 fw-bold">Pusat Laporan & Ekspor Data</h1>
+        <p class="text-muted mb-0">Unduh seluruh berkas laporan sistem pakar dalam format PDF Resmi dan Excel spreadsheet.</p>
     </div>
-    <div class="card-body">
-        <div class="alert alert-info border-0 shadow-sm mb-4 d-flex align-items-center rounded-3">
-            <i class="bi bi-info-circle-fill fs-5 me-3"></i>
-            <div>
-                Menampilkan laporan diagnosa periode 
-                <span class="fw-bold"><?= date('d M Y', strtotime($start_date)) ?></span> 
-                sampai 
-                <span class="fw-bold"><?= date('d M Y', strtotime($end_date)) ?></span>
+</div>
+
+<!-- Row Statistik & Informasi Singkat -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-4 bg-gradient bg-primary text-white p-4">
+            <div class="row align-items-center">
+                <div class="col-lg-8 mb-3 mb-lg-0">
+                    <h4 class="fw-bold mb-2">Selamat Datang di Pusat Laporan Sistem</h4>
+                    <p class="mb-0 text-white-50">
+                        Di halaman ini Anda dapat mengekspor seluruh basis data utama mulai dari riwayat hasil diagnosa, data gejala, data jenis penyakit, basis relasi aturan, hingga data akun administrator yang mengelola sistem pakar ikan nila Dzawil Farm.
+                    </p>
+                </div>
+                <div class="col-lg-4 text-lg-end text-center">
+                    <div class="d-inline-block bg-white-50 rounded-pill px-4 py-2 border border-white-50">
+                        <span class="text-white small">Total Riwayat Kasus: <strong><?= $total_diagnosa ?> Diagnosa</strong></span>
+                    </div>
+                </div>
             </div>
-        </div>
-        
-        <div class="table-responsive">
-            <table class="table table-hover table-striped table-bordered align-middle" id="dataTable" width="100%" cellspacing="0">
-                <thead class="table-light text-muted">
-                    <tr>
-                        <th class="text-center ps-4" width="5%">No</th>
-                        <th width="15%">Tanggal Diagnosa</th>
-                        <th width="20%">Kode Sampel</th>
-                        <th width="30%">Hasil Diagnosa</th>
-                        <th class="text-center" width="15%">Kecocokan</th>
-                        <th class="text-center pe-4" width="15%">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if (isset($laporan) && count($laporan) > 0): ?>
-                        <?php foreach ($laporan as $key => $row): 
-                            // SINKRONISASI: Hitung persentase dari kolom confidence (misal: 0.85 -> 85%)
-                            $conf = round($row['confidence'] * 100, 1);
-                            $badge_color = $conf >= 75 ? 'success' : ($conf >= 50 ? 'warning' : 'danger');
-                        ?>
-                        <tr>
-                            <td class="text-center ps-4 text-muted small"><?= $key + 1 ?></td>
-                            <td>
-                                <div class="fw-medium text-dark"><?= date('d/m/Y', strtotime($row['tanggal_diagnosa'])) ?></div>
-                                <small class="text-muted"><?= date('H:i', strtotime($row['tanggal_diagnosa'])) ?> WIB</small>
-                            </td>
-                            <td>
-                                <div class="fw-bold text-dark"> <?= htmlspecialchars($row['kode_sampel'] ?? '-') ?> </div>
-                            </td>
-                            <td>
-                                <?php if (!empty($row['nama_penyakit'])): ?>
-                                    <span class="fw-medium text-primary"><?= htmlspecialchars($row['nama_penyakit']) ?></span>
-                                    <br><small class="text-muted text-uppercase"><?= $row['hasil_penyakit'] ?></small>
-                                <?php else: ?>
-                                    <span class="text-muted fst-italic">Tidak Terdeteksi</span>
-                                <?php endif; ?>
-                            </td>
-                            <td class="text-center">
-                                <span class="badge bg-<?= $badge_color ?>-subtle text-<?= $badge_color ?> border border-<?= $badge_color ?>-subtle px-2 py-1">
-                                    <?= $conf ?>%
-                                </span>
-                            </td>
-                            <td class="text-center pe-4">
-                                <a href="diagnosa_detail.php?id=<?= $row['id_diagnosa'] ?>" class="btn btn-sm btn-light border text-info" title="Detail Riwayat">
-                                    <i class="bi bi-eye"></i> Detail
-                                </a>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <tr>
-                            <td colspan="6" class="text-center py-5 text-muted">
-                                <i class="bi bi-folder-x fs-1 d-block mb-2"></i>
-                                Tidak ada data diagnosa pada periode ini.
-                            </td>
-                        </tr>
-                    <?php endif; ?>
-                </tbody>
-                <tfoot>
-                    <tr class="bg-light">
-                        <td colspan="4" class="text-end pe-3"><strong>Total Diagnosa Ditemukan:</strong></td>
-                        <td colspan="2" class="fw-bold text-primary">
-                            <?= isset($laporan) ? count($laporan) : 0 ?> Kasus
-                        </td>
-                    </tr>
-                </tfoot>
-            </table>
         </div>
     </div>
 </div>
 
-<script>
-$(document).ready(function() {
-    // Inisialisasi DataTable tanpa fitur search (karena sudah pakai filter tanggal)
-    if (!$.fn.DataTable.isDataTable('#dataTable')) {
-        $('#dataTable').DataTable({
-            "pageLength": 10,
-            "lengthChange": false, // Sembunyikan "Tampilkan X data"
-            "searching": false,    // Sembunyikan form pencarian default
-            "language": {
-                "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ laporan",
-                "infoEmpty": "Menampilkan 0 data",
-                "paginate": {
-                    "next": "Lanjut",
-                    "previous": "Kembali"
-                }
-            }
-        });
-    }
-});
-</script>
+<!-- Row 1: Utama & Master (3 Cards) -->
+<div class="row g-4 mb-4">
+    <!-- Card Riwayat Diagnosa -->
+    <div class="col-lg-4 col-md-6">
+        <div class="card h-100 shadow-sm border border-secondary-subtle rounded-4 overflow-hidden">
+            <div class="card-body p-4 text-center">
+                <div class="rounded-circle bg-info-subtle text-info d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                    <i class="bi bi-clock-history fs-3 text-info"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-1">Riwayat Diagnosa</h5>
+                <p class="text-muted small mb-3">Total: <span class="fw-bold text-info"><?= $total_diagnosa ?> Diagnosa</span></p>
+                <p class="text-secondary small mb-4">Unduh berkas laporan seluruh riwayat hasil diagnosa penyakit ikan nila yang dilakukan oleh pengguna.</p>
+                <div class="d-grid gap-2">
+                    <a href="../../process/laporan_process.php?action=export_pdf" target="_blank" class="btn btn-sm btn-outline-danger rounded-pill">
+                        <i class="bi bi-file-earmark-pdf-fill me-1"></i> Cetak PDF
+                    </a>
+                    <a href="../../process/laporan_process.php?action=export_excel" class="btn btn-sm btn-outline-success rounded-pill">
+                        <i class="bi bi-file-earmark-excel-fill me-1"></i> Ekspor Excel
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card Penyakit -->
+    <div class="col-lg-4 col-md-6">
+        <div class="card h-100 shadow-sm border border-secondary-subtle rounded-4 overflow-hidden">
+            <div class="card-body p-4 text-center">
+                <div class="rounded-circle bg-danger-subtle text-danger d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                    <i class="bi bi-virus fs-3 text-danger"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-1">Data Penyakit</h5>
+                <p class="text-muted small mb-3">Total: <span class="fw-bold text-danger"><?= $total_penyakit ?> Penyakit</span></p>
+                <p class="text-secondary small mb-4">Unduh berkas data penyakit ikan nila, gejala spesifik, beserta saran pengobatannya.</p>
+                <div class="d-grid gap-2">
+                    <a href="../../process/print_penyakit.php?format=pdf" target="_blank" class="btn btn-sm btn-outline-danger rounded-pill">
+                        <i class="bi bi-file-earmark-pdf-fill me-1"></i> Cetak PDF
+                    </a>
+                    <a href="../../process/print_penyakit.php?format=excel" class="btn btn-sm btn-outline-success rounded-pill">
+                        <i class="bi bi-file-earmark-excel-fill me-1"></i> Ekspor Excel
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card Gejala -->
+    <div class="col-lg-4 col-md-12">
+        <div class="card h-100 shadow-sm border border-secondary-subtle rounded-4 overflow-hidden">
+            <div class="card-body p-4 text-center">
+                <div class="rounded-circle bg-primary-subtle text-primary d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                    <i class="bi bi-clipboard2-data fs-3 text-primary"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-1">Data Gejala</h5>
+                <p class="text-muted small mb-3">Total: <span class="fw-bold text-primary"><?= $total_gejala ?> Gejala</span></p>
+                <p class="text-secondary small mb-4">Unduh berkas laporan seluruh gejala klinis penyakit ikan nila yang terdaftar di sistem.</p>
+                <div class="d-grid gap-2">
+                    <a href="../../process/print_gejala.php?format=pdf" target="_blank" class="btn btn-sm btn-outline-danger rounded-pill">
+                        <i class="bi bi-file-earmark-pdf-fill me-1"></i> Cetak PDF
+                    </a>
+                    <a href="../../process/print_gejala.php?format=excel" class="btn btn-sm btn-outline-success rounded-pill">
+                        <i class="bi bi-file-earmark-excel-fill me-1"></i> Ekspor Excel
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Row 2: Aturan & Pengguna (2 Cards) -->
+<div class="row g-4 justify-content-center">
+    <!-- Card Basis Aturan -->
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm border border-secondary-subtle rounded-4 overflow-hidden">
+            <div class="card-body p-4 text-center">
+                <div class="rounded-circle bg-warning-subtle text-warning d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                    <i class="bi bi-diagram-3 fs-3 text-warning"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-1">Basis Aturan</h5>
+                <p class="text-muted small mb-3">Total: <span class="fw-bold text-warning"><?= $total_aturan ?> Aturan</span></p>
+                <p class="text-secondary small mb-4">Unduh matriks relasi basis aturan keputusan Forward Chaining sistem pakar.</p>
+                <div class="d-grid gap-2">
+                    <a href="../../process/print_relasi.php?format=pdf" target="_blank" class="btn btn-sm btn-outline-danger rounded-pill">
+                        <i class="bi bi-file-earmark-pdf-fill me-1"></i> Cetak PDF
+                    </a>
+                    <a href="../../process/print_relasi.php?format=excel" class="btn btn-sm btn-outline-success rounded-pill">
+                        <i class="bi bi-file-earmark-excel-fill me-1"></i> Ekspor Excel
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card Admin -->
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm border border-secondary-subtle rounded-4 overflow-hidden">
+            <div class="card-body p-4 text-center">
+                <div class="rounded-circle bg-success-subtle text-success d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                    <i class="bi bi-people fs-3 text-success"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-1">Data Admin</h5>
+                <p class="text-muted small mb-3">Role: <span class="fw-bold text-success">Administrator</span></p>
+                <p class="text-secondary small mb-4">Unduh data seluruh akun administrator pengelola sistem pakar ikan nila.</p>
+                <div class="d-grid gap-2">
+                    <a href="../../process/print_admin.php?format=pdf" target="_blank" class="btn btn-sm btn-outline-danger rounded-pill">
+                        <i class="bi bi-file-earmark-pdf-fill me-1"></i> Cetak PDF
+                    </a>
+                    <a href="../../process/print_admin.php?format=excel" class="btn btn-sm btn-outline-success rounded-pill">
+                        <i class="bi bi-file-earmark-excel-fill me-1"></i> Ekspor Excel
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <?php require_once '../../includes/footer.php'; ?>

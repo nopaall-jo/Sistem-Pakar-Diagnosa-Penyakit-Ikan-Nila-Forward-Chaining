@@ -51,10 +51,10 @@ if (!$data) {
                     </div>
 
                     <div class="text-center mb-5 bg-light p-4 rounded-4 border">
-                        <span class="badge bg-warning text-dark mb-2 px-3 py-2 rounded-pill">Kesimpulan Sistem</span>
+                        <span class="badge bg-warning text-dark mb-2 px-3 py-2 rounded-pill">Kesimpulan Hasil Diagnosa</span>
                         <h2 class="text-danger fw-bold my-2"><?= $data['nama_penyakit'] ?></h2>
                         <div class="d-inline-block bg-white rounded-pill px-4 py-2 border border-danger mt-2">
-                            <span class="text-dark">Tingkat Keyakinan: <strong class="text-danger"><?= $data['confidence'] ?>%</strong></span>
+                            <span class="text-dark">Tingkat Keyakinan: <strong class="text-danger"><?= round($data['confidence'] * 100, 2) ?>%</strong></span>
                         </div>
                     </div>
 
