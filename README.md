@@ -140,8 +140,15 @@ Halaman cetak laporan data diagnosa.
 
 ---
 
+### 17. Cetak Riwayat Diagnosa
 
-### 17. Halaman Index
+Halaman cetak laporan riwayat diagnosa.
+
+![Cetak Riwayat](assets/screenshots/20-ctk-riwayat.png)
+
+---
+
+### 18. Halaman Index
 
 Halaman utama website sistem pakar.
 
@@ -149,7 +156,7 @@ Halaman utama website sistem pakar.
 
 ---
 
-### 18. Halaman Konsultasi
+### 19. Halaman Konsultasi
 
 Pengguna memilih gejala yang dialami ikan nila.
 
@@ -157,16 +164,10 @@ Pengguna memilih gejala yang dialami ikan nila.
 
 ---
 
-### 19. Hasil Konsultasi
+### 20. Hasil Konsultasi
 
 Sistem menampilkan hasil konsultasi berdasarkan gejala yang dipilih.
 
 ![Hasil Konsultasi](assets/screenshots/03-hasilkonsultasi.png)
 
 ---
-
-### 20. Cetak Riwayat Diagnosa
-
-Halaman cetak laporan riwayat diagnosa.
-
-![Cetak Riwayat](assets/screenshots/20-ctk-riwayat.png)
