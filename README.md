@@ -12,31 +12,7 @@ Sistem pakar berbasis web yang dikembangkan menggunakan **PHP Native** untuk mem
 
 # 📸 Tampilan Sistem
 
-### 1. Halaman Index
-
-Halaman utama website sistem pakar.
-
-![Halaman Index](assets/screenshots/01-index.png)
-
----
-
-### 2. Halaman Konsultasi
-
-Pengguna memilih gejala yang dialami ikan nila.
-
-![Konsultasi](assets/screenshots/02-konsultasi.png)
-
----
-
-### 3. Hasil Konsultasi
-
-Sistem menampilkan hasil konsultasi berdasarkan gejala yang dipilih.
-
-![Hasil Konsultasi](assets/screenshots/03-hasilkonsultasi.png)
-
----
-
-### 4. Halaman Register
+### 1. Halaman Register
 
 Halaman pendaftaran akun pengguna.
 
@@ -44,7 +20,7 @@ Halaman pendaftaran akun pengguna.
 
 ---
 
-### 5. Halaman Login
+### 2. Halaman Login
 
 Halaman login untuk pengguna dan admin.
 
@@ -52,7 +28,7 @@ Halaman login untuk pengguna dan admin.
 
 ---
 
-### 6. Halaman Dashboard
+### 3. Halaman Dashboard
 
 Dashboard utama administrator.
 
@@ -60,7 +36,7 @@ Dashboard utama administrator.
 
 ---
 
-### 7. Halaman Data Penyakit
+### 4. Halaman Data Penyakit
 
 Halaman pengelolaan data penyakit.
 
@@ -68,7 +44,7 @@ Halaman pengelolaan data penyakit.
 
 ---
 
-### 8. Halaman Data Gejala
+### 5. Halaman Data Gejala
 
 Halaman pengelolaan data gejala.
 
@@ -76,7 +52,7 @@ Halaman pengelolaan data gejala.
 
 ---
 
-### 9. Halaman Data Aturan
+### 6. Halaman Data Aturan
 
 Halaman pengelolaan aturan (rule) untuk metode Forward Chaining.
 
@@ -84,7 +60,7 @@ Halaman pengelolaan aturan (rule) untuk metode Forward Chaining.
 
 ---
 
-### 10. Halaman Diagnosa
+### 7. Halaman Diagnosa
 
 Halaman proses diagnosa penyakit.
 
@@ -92,7 +68,7 @@ Halaman proses diagnosa penyakit.
 
 ---
 
-### 11. Hasil Diagnosa
+### 8. Hasil Diagnosa
 
 Menampilkan hasil diagnosa beserta solusi penanganan.
 
@@ -100,7 +76,7 @@ Menampilkan hasil diagnosa beserta solusi penanganan.
 
 ---
 
-### 12. Riwayat Diagnosa
+### 9. Riwayat Diagnosa
 
 Menampilkan riwayat seluruh proses diagnosa yang telah dilakukan.
 
@@ -108,7 +84,7 @@ Menampilkan riwayat seluruh proses diagnosa yang telah dilakukan.
 
 ---
 
-### 13. Detail Diagnosa
+### 10. Detail Diagnosa
 
 Menampilkan informasi detail dari hasil diagnosa.
 
@@ -116,7 +92,7 @@ Menampilkan informasi detail dari hasil diagnosa.
 
 ---
 
-### 14. Cetak Laporan
+### 11. Cetak Laporan
 
 Halaman untuk mencetak laporan diagnosa.
 
@@ -124,7 +100,7 @@ Halaman untuk mencetak laporan diagnosa.
 
 ---
 
-### 15. Halaman Admin
+### 12. Halaman Admin
 
 Halaman pengelolaan data administrator.
 
@@ -132,7 +108,7 @@ Halaman pengelolaan data administrator.
 
 ---
 
-### 16. Cetak Data Penyakit
+### 13. Cetak Data Penyakit
 
 Halaman cetak laporan data penyakit.
 
@@ -140,7 +116,7 @@ Halaman cetak laporan data penyakit.
 
 ---
 
-### 17. Cetak Data Gejala
+### 14. Cetak Data Gejala
 
 Halaman cetak laporan data gejala.
 
@@ -148,7 +124,7 @@ Halaman cetak laporan data gejala.
 
 ---
 
-### 18. Cetak Data Aturan
+### 15. Cetak Data Aturan
 
 Halaman cetak laporan data aturan.
 
@@ -156,11 +132,36 @@ Halaman cetak laporan data aturan.
 
 ---
 
-### 19. Cetak Data Diagnosa
+### 16. Cetak Data Diagnosa
 
 Halaman cetak laporan data diagnosa.
 
 ![Cetak Diagnosa](assets/screenshots/19-ctk diagnosa.png)
+
+---
+
+
+### 17. Halaman Index
+
+Halaman utama website sistem pakar.
+
+![Halaman Index](assets/screenshots/01-index.png)
+
+---
+
+### 18. Halaman Konsultasi
+
+Pengguna memilih gejala yang dialami ikan nila.
+
+![Konsultasi](assets/screenshots/02-konsultasi.png)
+
+---
+
+### 19. Hasil Konsultasi
+
+Sistem menampilkan hasil konsultasi berdasarkan gejala yang dipilih.
+
+![Hasil Konsultasi](assets/screenshots/03-hasilkonsultasi.png)
 
 ---
 
