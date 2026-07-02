@@ -16,7 +16,7 @@ Sistem pakar berbasis web yang dikembangkan menggunakan **PHP Native** untuk mem
 
 Halaman utama website sebelum pengguna melakukan konsultasi.
 
-![Halaman Utama](assets/img/index.png)
+![Halaman Utama](assets/screenshots/index.png)
 
 ---
 
@@ -24,7 +24,7 @@ Halaman utama website sebelum pengguna melakukan konsultasi.
 
 Pengguna memilih gejala yang dialami ikan nila.
 
-![Konsultasi](assets/img/konsultasi.png)
+![Konsultasi](assets/screenshots/konsultasi.png)
 
 ---
 
@@ -32,7 +32,7 @@ Pengguna memilih gejala yang dialami ikan nila.
 
 Sistem menampilkan hasil konsultasi berdasarkan gejala yang dipilih.
 
-![Hasil Konsultasi](assets/img/hasilkonsultasi.png)
+![Hasil Konsultasi](assets/screenshots/hasilkonsultasi.png)
 
 ---
 
@@ -48,7 +48,7 @@ Halaman autentikasi administrator.
 
 Dashboard administrator.
 
-![Dashboard](assets/img/dashboard.png)
+![Dashboard](assets/screenshots/dashboard.png)
 
 ---
 
@@ -56,7 +56,7 @@ Dashboard administrator.
 
 Halaman pengelolaan data penyakit.
 
-![Penyakit](assets/img/penyakit.png)
+![Penyakit](assets/screenshots/penyakit.png)
 
 ---
 
@@ -64,7 +64,7 @@ Halaman pengelolaan data penyakit.
 
 Halaman pengelolaan data gejala.
 
-![Gejala](assets/img/gejala.png)
+![Gejala](assets/screenshots/gejala.png)
 
 ---
 
@@ -72,7 +72,7 @@ Halaman pengelolaan data gejala.
 
 Halaman pengelolaan aturan Forward Chaining.
 
-![Aturan](assets/img/aturan.png)
+![Aturan](assets/screenshots/aturan.png)
 
 ---
 
@@ -80,7 +80,7 @@ Halaman pengelolaan aturan Forward Chaining.
 
 Halaman proses diagnosa.
 
-![Diagnosa](assets/img/diagnosa.png)
+![Diagnosa](assets/screenshots/diagnosa.png)
 
 ---
 
@@ -88,7 +88,7 @@ Halaman proses diagnosa.
 
 Menampilkan hasil diagnosa beserta solusi.
 
-![Hasil Diagnosa](assets/img/hasildiagnosa.png)
+![Hasil Diagnosa](assets/screenshots/hasildiagnosa.png)
 
 ---
 
@@ -96,7 +96,7 @@ Menampilkan hasil diagnosa beserta solusi.
 
 Riwayat seluruh proses diagnosa.
 
-![Riwayat](assets/img/riwayat.png)
+![Riwayat](assets/screenshots/riwayat.png)
 
 ---
 
@@ -104,7 +104,7 @@ Riwayat seluruh proses diagnosa.
 
 Menampilkan informasi detail hasil diagnosa.
 
-![Detail](assets/img/detail.png)
+![Detail](assets/screenshots/detail.png)
 
 ---
 
@@ -112,7 +112,7 @@ Menampilkan informasi detail hasil diagnosa.
 
 Halaman cetak laporan diagnosa.
 
-![Cetak](assets/img/cetak.png)
+![Cetak](assets/screenshots/cetak.png)
 
 ---
 
