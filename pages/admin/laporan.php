@@ -1,6 +1,6 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) { 
-    session_start(); 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
 }
 
 require_once '../../config/database.php';
@@ -20,7 +20,7 @@ try {
 <!-- Header Section -->
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
     <div>
-        <h1 class="h3 mb-0 text-gray-800 fw-bold">Pusat Laporan & Ekspor Data</h1>
+        <h1 class="h3 mb-0 text-gray-800 fw-bold">Pusat Laporan & Ekspor Data Penyakit Ikan Nila</h1>
         <p class="text-muted mb-0">Unduh seluruh berkas laporan sistem pakar dalam format PDF Resmi dan Excel spreadsheet.</p>
     </div>
 </div>

@@ -29,36 +29,36 @@ $title_page = "Panel Kontrol Administrator";
 
 switch ($current_page) {
     case 'dashboard.php':
-        $title_page = "Dashboard Utama";
+        $title_page = "Dashboard Utama Ikan Nila";
         break;
     case 'gejala.php':
-        $title_page = "Kelola Data Gejala";
+        $title_page = "Kelola Data Gejala Ikan Nila";
         break;
     case 'penyakit.php':
-        $title_page = "Kelola Data Penyakit";
+        $title_page = "Kelola Data Penyakit Ikan Nila";
         break;
     case 'relasi.php':
-        $title_page = "Kelola Basis Aturan";
+        $title_page = "Kelola Basis Aturan Penyakit Ikan Nila";
         break;
     case 'riwayat.php':
-        $title_page = "Riwayat Diagnosa";
+        $title_page = "Riwayat Diagnosa Penyakit Ikan Nila";
         break;
     case 'detail_riwayat.php':
     case 'diagnosa_detail.php':
-        $title_page = "Detail Riwayat Diagnosa";
+        $title_page = "Detail Riwayat Diagnosa Penyakit Ikan Nila";
         break;
     case 'diagnosa.php':
     case 'hasil_diagnosa.php':
-        $title_page = "Uji Diagnosa Pakar";
+        $title_page = "Uji Diagnosa Pakar Penyakit Ikan Nila";
         break;
     case 'data_admin.php':
-        $title_page = "Kelola Data Admin";
+        $title_page = "Kelola Data Admin Penyakit Ikan Nila";
         break;
     case 'profile.php':
-        $title_page = "Profil Administrator";
+        $title_page = "Profil Administrator Penyakit Ikan Nila";
         break;
     case 'laporan.php':
-        $title_page = "Laporan Diagnosa";
+        $title_page = "Laporan Diagnosa Penyakit Ikan Nila";
         break;
 }
 ?>

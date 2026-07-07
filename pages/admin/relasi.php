@@ -26,8 +26,8 @@ try {
                    GROUP BY a.kode_aturan, p.kode_penyakit, p.nama_penyakit
                    ORDER BY CAST(SUBSTRING(a.kode_aturan, 2) AS UNSIGNED) ASC")->fetchAll(PDO::FETCH_ASSOC);
 
-    // 2. Diseases without rules
-    $penyakit = $pdo->query("SELECT kode_penyakit, nama_penyakit FROM tbl_penyakit WHERE kode_penyakit NOT IN (SELECT DISTINCT kode_penyakit FROM tbl_aturan) ORDER BY kode_penyakit ASC")->fetchAll(PDO::FETCH_ASSOC);
+    // 2. Diseases list (all diseases)
+    $penyakit = $pdo->query("SELECT kode_penyakit, nama_penyakit FROM tbl_penyakit ORDER BY kode_penyakit ASC")->fetchAll(PDO::FETCH_ASSOC);
 
     // 3. Symptoms list
     $gejala = $pdo->query("SELECT kode_gejala, nama_gejala FROM tbl_gejala ORDER BY CAST(SUBSTRING(kode_gejala, 2) AS UNSIGNED) ASC")->fetchAll(PDO::FETCH_ASSOC);
@@ -83,7 +83,7 @@ try {
                         <td class="text-center">
                             <div class="btn-group">
                                 <button type="button" class="btn btn-sm btn-light border text-warning edit-relasi" data-kode-aturan="<?= $r['kode_aturan'] ?>" data-kode-penyakit="<?= $r['kode_penyakit'] ?>" data-nama-penyakit="<?= $r['nama_penyakit'] ?>" data-gejala-list="<?= $r['gejala_codes'] ?>"><i class="bi bi-pencil-square"></i></button>
-                                <button type="button" class="btn btn-sm btn-light border text-danger delete-relasi" data-kode-penyakit="<?= $r['kode_penyakit'] ?>" data-nama-penyakit="<?= $r['nama_penyakit'] ?>"><i class="bi bi-trash3"></i></button>
+                                <button type="button" class="btn btn-sm btn-light border text-danger delete-relasi" data-kode-aturan="<?= $r['kode_aturan'] ?>" data-kode-penyakit="<?= $r['kode_penyakit'] ?>" data-nama-penyakit="<?= $r['nama_penyakit'] ?>"><i class="bi bi-trash3"></i></button>
                             </div>
                         </td>
                     </tr>
@@ -165,7 +165,7 @@ try {
                 <div class="modal-body p-4">
                     <div class="mb-3">
                         <label class="form-label fw-bold">Kode Aturan</label>
-                        <input type="text" class="form-control bg-light fw-bold text-primary" id="editKodeAturanDisplay" readonly>
+                        <input type="text" class="form-control bg-light fw-bold text-primary" name="kode_aturan" id="editKodeAturanDisplay" readonly>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold">Penyakit</label>
@@ -202,7 +202,7 @@ try {
 
 <form id="formDeleteRelasi" action="../../process/relasi_process.php" method="POST" style="display:none;">
     <input type="hidden" name="action" value="delete">
-    <input type="hidden" id="deleteKodePenyakitInput" name="kode_penyakit">
+    <input type="hidden" id="deleteKodeAturanInput" name="kode_aturan">
 </form>
 
 <?php require_once '../../includes/footer.php'; ?>
@@ -270,15 +270,16 @@ $(document).ready(function() {
     // Delete relation
     $(document).on('click', '.delete-relasi', function(e) {
         e.preventDefault();
+        var ka = $(this).data('kode-aturan');
         var kp = $(this).data('kode-penyakit');
         var np = $(this).data('nama-penyakit');
         Swal.fire({
             title: 'Hapus Aturan?',
-            text: "Hapus aturan penyakit [" + kp + "] " + np + " beserta seluruh gejalanya?",
+            text: "Hapus aturan [" + ka + "] untuk penyakit [" + kp + "] " + np + " beserta gejalanya?",
             icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', confirmButtonText: 'Ya, Hapus', cancelButtonText: 'Batal'
         }).then((result) => {
             if (result.isConfirmed) {
-                $('#deleteKodePenyakitInput').val(kp);
+                $('#deleteKodeAturanInput').val(ka);
                 $('#formDeleteRelasi').submit();
             }
         });

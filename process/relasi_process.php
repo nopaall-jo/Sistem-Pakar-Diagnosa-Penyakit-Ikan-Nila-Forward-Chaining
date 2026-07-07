@@ -28,9 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $next_num = ($max_row['max_rule'] ?? 0) + 1;
             $kode_aturan = 'R' . str_pad($next_num, 2, '0', STR_PAD_LEFT);
 
-            // Hapus jika sebelumnya sudah ada (untuk mencegah duplikasi)
-            $delete = $pdo->prepare("DELETE FROM tbl_aturan WHERE kode_penyakit = ?");
-            $delete->execute([$kode_penyakit]);
+            // No deletion needed when creating a new rule, as a fresh kode_aturan is generated.
 
             $success_count = 0;
             $insert = $pdo->prepare("INSERT INTO tbl_aturan (kode_aturan, kode_penyakit, kode_gejala) VALUES (?, ?, ?)");
@@ -52,11 +50,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // --- LOGIKA UPDATE ATURAN (UPDATE) ---
     if ($action == 'update') {
+        $kode_aturan = $_POST['kode_aturan'] ?? '';
         $kode_penyakit = $_POST['kode_penyakit'] ?? '';
         $list_gejala = $_POST['kode_gejala'] ?? []; // Ini berupa Array dari checklist
 
-        if (empty($kode_penyakit)) {
-            $_SESSION['error'] = 'Penyakit tidak valid!';
+        if (empty($kode_aturan) || empty($kode_penyakit)) {
+            $_SESSION['error'] = 'Aturan atau Penyakit tidak valid!';
             header("Location: $return_url");
             exit();
         }
@@ -64,24 +63,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         try {
             $pdo->beginTransaction();
 
-            // Cari kode_aturan yang sudah ada untuk penyakit ini agar tetap konsisten
-            $stmt_existing = $pdo->prepare("SELECT kode_aturan FROM tbl_aturan WHERE kode_penyakit = ? LIMIT 1");
-            $stmt_existing->execute([$kode_penyakit]);
-            $existing_row = $stmt_existing->fetch(PDO::FETCH_ASSOC);
-
-            if ($existing_row) {
-                $kode_aturan = $existing_row['kode_aturan'];
-            } else {
-                // Jika sebelumnya belum ada kode aturan, buat baru
-                $stmt_max = $pdo->query("SELECT MAX(CAST(SUBSTRING(kode_aturan, 2) AS UNSIGNED)) as max_rule FROM tbl_aturan");
-                $max_row = $stmt_max->fetch(PDO::FETCH_ASSOC);
-                $next_num = ($max_row['max_rule'] ?? 0) + 1;
-                $kode_aturan = 'R' . str_pad($next_num, 2, '0', STR_PAD_LEFT);
-            }
-
-            // 1. Hapus aturan lama untuk penyakit ini
-            $delete = $pdo->prepare("DELETE FROM tbl_aturan WHERE kode_penyakit = ?");
-            $delete->execute([$kode_penyakit]);
+            // 1. Hapus aturan lama berdasarkan kode_aturan
+            $delete = $pdo->prepare("DELETE FROM tbl_aturan WHERE kode_aturan = ?");
+            $delete->execute([$kode_aturan]);
 
             // 2. Masukkan aturan baru jika ada gejala yang dicentang
             $success_count = 0;
@@ -106,17 +90,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // --- LOGIKA HAPUS ATURAN (DELETE) ---
     if ($action == 'delete') {
-        $kode_penyakit = $_POST['kode_penyakit'] ?? '';
+        $kode_aturan = $_POST['kode_aturan'] ?? '';
 
         try {
-            if (empty($kode_penyakit)) {
-                throw new Exception("Kode penyakit tidak ditemukan!");
+            if (empty($kode_aturan)) {
+                throw new Exception("Kode aturan tidak ditemukan!");
             }
 
-            $stmt = $pdo->prepare("DELETE FROM tbl_aturan WHERE kode_penyakit = ?");
-            $stmt->execute([$kode_penyakit]);
+            $stmt = $pdo->prepare("DELETE FROM tbl_aturan WHERE kode_aturan = ?");
+            $stmt->execute([$kode_aturan]);
 
-            $_SESSION['success'] = "Seluruh aturan gejala untuk penyakit tersebut berhasil dihapus!";
+            $_SESSION['success'] = "Aturan $kode_aturan berhasil dihapus!";
         } catch (Exception $e) {
             $_SESSION['error'] = "Gagal hapus aturan: " . $e->getMessage();
         }
